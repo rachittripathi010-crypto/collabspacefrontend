@@ -1,79 +1,38 @@
-# @kurkle/color
+<p align="center">
+  <a href="https://www.chartjs.org/" target="_blank">
+    <img src="https://www.chartjs.org/media/logo-title.svg" alt="https://www.chartjs.org/"><br/>
+  </a>
+    Simple yet flexible JavaScript charting for designers & developers
+</p>
 
-[![npm](https://img.shields.io/npm/v/@kurkle/color?style=plastic)](https://www.npmjs.com/package/@kurkle/color) [![release](https://img.shields.io/github/release/kurkle/color.svg?style=plastic)](https://github.com/kurkle/color/releases/latest) [![npm bundle size](https://img.shields.io/bundlephobia/minzip/@kurkle/color?style=plastic)](https://www.npmjs.com/package/@kurkle/color) [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/kurkle/color/ci.yml?style=plastic)](https://github.com/kurkle/color) [![GitHub](https://img.shields.io/github/license/kurkle/color?style=plastic)](https://github.com/kurkle/color/blob/main/LICENSE.md)
+<p align="center">
+    <a href="https://www.chartjs.org/docs/latest/getting-started/installation.html"><img src="https://img.shields.io/github/release/chartjs/Chart.js.svg?style=flat-square&maxAge=600" alt="Downloads"></a>
+    <a href="https://github.com/chartjs/Chart.js/actions?query=workflow%3ACI+branch%3Amaster"><img alt="GitHub Workflow Status" src="https://img.shields.io/github/actions/workflow/status/chartjs/Chart.js/ci.yml?branch=master&style=flat-square"></a>
+    <a href="https://coveralls.io/github/chartjs/Chart.js?branch=master"><img src="https://img.shields.io/coveralls/chartjs/Chart.js.svg?style=flat-square&maxAge=600" alt="Coverage"></a>
+    <a href="https://github.com/chartjs/awesome"><img src="https://awesome.re/badge-flat2.svg" alt="Awesome"></a>
+    <a href="https://discord.gg/HxEguTK6av"><img src="https://img.shields.io/badge/discord-chartjs-blue?style=flat-square&maxAge=3600" alt="Discord"></a>
+</p>
 
-## Overview
+## Documentation
 
-Fast and small CSS color parsing and manipulation library.
+All the links point to the new version 4 of the lib.
 
-## Parsing
+* [Introduction](https://www.chartjs.org/docs/latest/)
+* [Getting Started](https://www.chartjs.org/docs/latest/getting-started/index)
+* [General](https://www.chartjs.org/docs/latest/general/data-structures)
+* [Configuration](https://www.chartjs.org/docs/latest/configuration/index)
+* [Charts](https://www.chartjs.org/docs/latest/charts/line)
+* [Axes](https://www.chartjs.org/docs/latest/axes/index)
+* [Developers](https://www.chartjs.org/docs/latest/developers/index)
+* [Popular Extensions](https://github.com/chartjs/awesome)
+* [Samples](https://www.chartjs.org/samples/)
 
-Supported formats:
+In case you are looking for an older version of the docs, you will have to specify the specific version in the url like this: [https://www.chartjs.org/docs/2.9.4/](https://www.chartjs.org/docs/2.9.4/)
 
-- named
+## Contributing
 
-```text
-blue
-transparent
-```
-
-- hex
-
-```text
-#aaa
-#bbba
-#1A2b3c
-#f1f2f388
-```
-
-- rgb(a)
-
-```text
-rgb(255, 255, 255)
-rgb(255, 0, 0, 0.5)
-rgb(50%, 50%, 50%, 50%)
-rgb(0 0 100% / 80%)
-rgba(200, 20, 233, 0.2)
-rgba(200, 20, 233, 2e-1)
-```
-
-- hsl(a)
-
-```text
-hsl(240deg, 100%, 50.5%)
-hsl(0deg 100% 50%)
-hsla(12, 10%, 50%, .3)
-hsla(-1.2, 10.2%, 50.9%, 0.4)
-```
-
-- hwb
-
-```text
-hwb(240, 100%, 50.5%)
-hwb(244, 100%, 100%, 0.6)
-```
-
-- hsv
-
-```text
-hsv(240, 100%, 50.5%)
-hsv(244, 100%, 100%, 0.6)
-```
-
-## Docs
-
-[typedocs](https://kurkle.github.io/color/)
-
-**note** The docs are for the ESM module. UMD module only exports the [default export](https://kurkle.github.io/color/modules.html#default)
-
-## Benchmarks
-
-[benchmarks](https://kurkle.github.io/color/dev/bench/)
-
-## Size visualization
-
-[color.min.js](https://kurkle.github.io/color/stats.html)
+Instructions on building and testing Chart.js can be found in [the documentation](https://www.chartjs.org/docs/master/developers/contributing.html#building-and-testing). Before submitting an issue or a pull request, please take a moment to look over the [contributing guidelines](https://www.chartjs.org/docs/master/developers/contributing) first. For support, please post questions on [Stack Overflow](https://stackoverflow.com/questions/tagged/chart.js) with the `chart.js` tag.
 
 ## License
 
-`@kurkle/color` is available under the [MIT license](https://github.com/kurkle/color/blob/main/LICENSE.md).
+Chart.js is available under the [MIT license](LICENSE.md).
