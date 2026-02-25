@@ -241,10 +241,10 @@ document.addEventListener('DOMContentLoaded', () => {
 function handleAuth(e, type) {
   e.preventDefault();
 
-  /* ── LOGIN: validate password ── */
+  /* ── LOGIN: check stored credentials ── */
   if (type === 'login') {
+    const email = document.getElementById('login-email').value.trim().toLowerCase();
     const password = document.getElementById('login-password').value;
-    const CORRECT_PASSWORD = '12467';
 
     // Show or clear inline error
     let loginErr = document.getElementById('login-error');
@@ -255,8 +255,17 @@ function handleAuth(e, type) {
       document.getElementById('form-login').querySelector('.auth-submit').insertAdjacentElement('beforebegin', loginErr);
     }
 
-    if (password !== CORRECT_PASSWORD) {
-      loginErr.textContent = '✗ Incorrect password. Please try again.';
+    // Look up user in localStorage
+    const storedRaw = localStorage.getItem('tl_user_' + email);
+    let credValid = false;
+    let userData = null;
+    if (storedRaw) {
+      userData = JSON.parse(storedRaw);
+      credValid = userData.password === password;
+    }
+
+    if (!credValid) {
+      loginErr.textContent = '✗ Invalid email or password. Please try again.';
       loginErr.style.display = 'block';
       const pwInput = document.getElementById('login-password');
       pwInput.classList.add('input-invalid');
@@ -264,15 +273,16 @@ function handleAuth(e, type) {
       return;
     }
 
-    // ✅ Correct password — show success then redirect
+    // ✅ Valid credentials — store current user and redirect
     loginErr.style.display = 'none';
+    localStorage.setItem('tl_current_user', email);
     const loginForm = document.getElementById('form-login');
     const successBox = document.getElementById('auth-success');
     const successText = document.getElementById('auth-success-text');
 
     loginForm.style.display = 'none';
     successBox.style.display = 'flex';
-    successText.textContent = '✅ Login successful! Redirecting to your dashboard...';
+    successText.textContent = '✅ Welcome back, ' + userData.firstName + '! Redirecting to your dashboard...';
 
     setTimeout(() => { window.location.href = 'dashboard.html'; }, 1500);
     return;
@@ -310,6 +320,23 @@ function handleAuth(e, type) {
     if (!fnameOk || !lnameOk || !bizOk || !emailOk || !passOk) return;
   }
 
+  // Collect signup data and save to localStorage
+  const regEmail = document.getElementById('signup-email').value.trim().toLowerCase();
+  const regFirst = document.getElementById('signup-fname').value.trim();
+  const regLast = document.getElementById('signup-lname').value.trim();
+  const regBiz = document.getElementById('signup-business').value.trim();
+  const regPass = document.getElementById('signup-password').value;
+
+  const newUser = { firstName: regFirst, lastName: regLast, business: regBiz, email: regEmail, password: regPass, createdAt: Date.now() };
+  localStorage.setItem('tl_user_' + regEmail, JSON.stringify(newUser));
+  localStorage.setItem('tl_current_user', regEmail);
+
+  // Start 2-day free trial if not already running
+  if (!localStorage.getItem('tl_trial_start')) {
+    localStorage.setItem('tl_trial_start', Date.now().toString());
+    localStorage.setItem('tl_trial_email', regEmail);
+  }
+
   const loginForm = document.getElementById('form-login');
   const signupForm = document.getElementById('form-signup');
   const successBox = document.getElementById('auth-success');
@@ -319,8 +346,8 @@ function handleAuth(e, type) {
   signupForm.style.display = 'none';
   successBox.style.display = 'flex';
 
-  const name = document.getElementById('signup-fname').value;
-  successText.textContent = `Account created, ${name}! Check your email to verify your address.`;
+  successText.textContent = `🎉 Account created, ${regFirst}! Your 2-day free trial has started. Redirecting to your dashboard...`;
+  setTimeout(() => { window.location.href = 'dashboard.html'; }, 2000);
 }
 
 /* Close modal on backdrop click */
@@ -332,5 +359,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
 /* Close modal on Escape key */
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape") closeAuthModal();
+  if (e.key === "Escape") { closeAuthModal(); closeDemoModal(); }
 });
+
+/* ============================================
+   DEMO VIDEO MODAL
+   ============================================ */
+
+function openDemoModal() {
+  const modal = document.getElementById('demoModal');
+  const iframe = document.getElementById('demoIframe');
+  iframe.src = 'https://www.youtube.com/embed/d8SOYDO4Xwk?autoplay=1';
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDemoModal() {
+  const modal = document.getElementById('demoModal');
+  if (!modal) return;
+  const iframe = document.getElementById('demoIframe');
+  modal.classList.remove('open');
+  iframe.src = '';
+  document.body.style.overflow = 'auto';
+}

@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BrewTrack — Inventory & Booking for Craft Breweries</title>
+  <title>Tamperline.us — Inventory & Booking for Craft Breweries</title>
   <meta name="description"
-    content="BrewTrack by Tamperline.us — Stock tracking, batch management, and rental booking for craft breweries and small retailers.">
+    content="Tamperline.us — Stock tracking, batch management, and rental booking for craft breweries and small retailers.">
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
@@ -27,7 +27,7 @@
       <!-- Logo inside modal -->
       <div class="auth-brand">
         <div class="logo-box" style="margin:0 auto 12px;width:48px;height:48px;font-size:18px;">🍺</div>
-        <h2 class="auth-title">Welcome to BrewTrack</h2>
+        <h2 class="auth-title">Welcome to Tamperline.us</h2>
         <p class="auth-sub">Sign in to manage your inventory &amp; bookings</p>
       </div>
 
@@ -117,11 +117,11 @@
       <div class="logo">
         <div class="logo-row">
           <div class="logo-box">🍺</div>
-          <span class="logo-name">BrewTrack</span>
+          <span class="logo-name">Tamperline.us</span>
         </div>
         <!-- SVG brand mark below company name -->
         <div class="logo-mark">
-          <svg viewBox="0 0 148 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="BrewTrack logo">
+          <svg viewBox="0 0 170 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Tamperline.us logo">
             <!-- Barrel icon -->
             <rect x="1" y="5" width="14" height="12" rx="3" fill="url(#blg)" opacity="0.9" />
             <line x1="1" y1="11" x2="15" y2="11" stroke="#fff" stroke-width="1.2" opacity="0.4" />
@@ -129,9 +129,9 @@
             <line x1="12" y1="5" x2="12" y2="17" stroke="#fff" stroke-width="1" opacity="0.3" />
             <!-- Wordmark -->
             <text x="22" y="15.5" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#a78bfa"
-              letter-spacing="0.04em">BREW</text>
-            <text x="56" y="15.5" font-family="Inter, sans-serif" font-size="11" font-weight="300" fill="#60a5fa"
-              letter-spacing="0.04em">TRACK</text>
+              letter-spacing="0.04em">TAMPER</text>
+            <text x="80" y="15.5" font-family="Inter, sans-serif" font-size="11" font-weight="300" fill="#60a5fa"
+              letter-spacing="0.04em">LINE.US</text>
             <defs>
               <linearGradient id="blg" x1="0" y1="0" x2="1" y2="0">
                 <stop offset="0%" stop-color="#9333ea" />
@@ -174,7 +174,7 @@
 
       <div class="hero-cta">
         <button class="primary-btn large" onclick="openAuthModal('signup')">Start Free Trial →</button>
-        <button class="outline-btn large">Watch Demo</button>
+        <button class="outline-btn large" onclick="openDemoModal()">Watch Demo</button>
       </div>
 
       <div class="hero-image">
@@ -190,7 +190,7 @@
       <div class="stats-grid">
         <div class="stat-item">
           <h3>3,200+</h3>
-          <p>Breweries Using BrewTrack</p>
+          <p>Breweries Using Tamperline.us</p>
         </div>
         <div class="stat-item">
           <h3>18M+</h3>
@@ -223,8 +223,7 @@
     </div>
 
     <div class="dashboard-image">
-      <img src="https://images.unsplash.com/photo-1586993451228-09b8e4e72e63?q=80&w=1400&auto=format&fit=crop"
-        alt="BrewTrack Dashboard">
+      <img src="bm4.jpeg" alt="Tamperline.us Dashboard">
     </div>
   </section>
 
@@ -300,7 +299,7 @@
           <div class="pricing-body">
             <h3>Tap</h3>
             <p style="font-size:13px;color:var(--txt-3)">Perfect for nano-breweries &amp; home retailers</p>
-            <h4 class="price" data-month="29" data-year="232">$29</h4>
+            <h4 class="price" data-month="199" data-year="1592">$199</h4>
             <p class="price-period">per month, billed monthly</p>
             <ul class="pricing-features">
               <li>Up to 5 batch logs/month</li>
@@ -318,7 +317,7 @@
           <div class="pricing-body">
             <h3>Barrel</h3>
             <p style="font-size:13px;color:var(--txt-3)">For growing craft breweries</p>
-            <h4 class="price" data-month="69" data-year="552">$69</h4>
+            <h4 class="price" data-month="399" data-year="3192">$399</h4>
             <p class="price-period">per month, billed monthly</p>
             <ul class="pricing-features">
               <li>Unlimited batch logs</li>
@@ -335,7 +334,7 @@
           <div class="pricing-body">
             <h3>Cellar</h3>
             <p style="font-size:13px;color:var(--txt-3)">For multi-location breweries &amp; distributors</p>
-            <h4 class="price" data-month="149" data-year="1192">$149</h4>
+            <h4 class="price" data-month="699" data-year="5592">$699</h4>
             <p class="price-period">per month, billed monthly</p>
             <ul class="pricing-features">
               <li>Multi-location inventory</li>
@@ -356,12 +355,14 @@
     <div class="container">
       <div class="section-eyebrow">Brewery Stories</div>
       <h2>What our brewers say</h2>
-      <p class="section-sub">Hundreds of craft breweries and small retailers trust BrewTrack to run their operations.
+      <p class="section-sub">Hundreds of craft breweries and small retailers trust Tamperline.us to run their
+        operations.
       </p>
 
       <div class="testimonial-slider">
         <div class="testimonial active">
-          <p class="quote-text">BrewTrack completely transformed how we manage our kegs and barrel inventory. We went
+          <p class="quote-text">Tamperline.us completely transformed how we manage our kegs and barrel inventory. We
+            went
             from spreadsheets to full visibility overnight.</p>
           <div class="testimonial-author">
             <img src="https://randomuser.me/api/portraits/men/45.jpg" class="avatar" alt="Tom B.">
@@ -413,18 +414,18 @@
           <div class="logo">
             <div class="logo-row">
               <div class="logo-box">🍺</div>
-              <span class="logo-name">BrewTrack</span>
+              <span class="logo-name">Tamperline.us</span>
             </div>
             <div class="logo-mark">
-              <svg viewBox="0 0 148 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg viewBox="0 0 170 22" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="1" y="5" width="14" height="12" rx="3" fill="url(#fblg)" opacity="0.9" />
                 <line x1="1" y1="11" x2="15" y2="11" stroke="#fff" stroke-width="1.2" opacity="0.4" />
                 <line x1="4" y1="5" x2="4" y2="17" stroke="#fff" stroke-width="1" opacity="0.3" />
                 <line x1="12" y1="5" x2="12" y2="17" stroke="#fff" stroke-width="1" opacity="0.3" />
                 <text x="22" y="15.5" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#a78bfa"
-                  letter-spacing="0.04em">BREW</text>
-                <text x="56" y="15.5" font-family="Inter, sans-serif" font-size="11" font-weight="300" fill="#60a5fa"
-                  letter-spacing="0.04em">TRACK</text>
+                  letter-spacing="0.04em">TAMPER</text>
+                <text x="80" y="15.5" font-family="Inter, sans-serif" font-size="11" font-weight="300" fill="#60a5fa"
+                  letter-spacing="0.04em">LINE.US</text>
                 <defs>
                   <linearGradient id="fblg" x1="0" y1="0" x2="1" y2="0">
                     <stop offset="0%" stop-color="#9333ea" />
@@ -475,11 +476,11 @@
         <div class="footer-col">
           <h5>Company</h5>
           <ul>
-            <li><a href="#">About Us</a></li>
-            <li><a href="#">Blog</a></li>
-            <li><a href="#">Careers</a></li>
-            <li><a href="#">Press</a></li>
-            <li><a href="#">Contact</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="blog.html">Blog</a></li>
+            <li><a href="careers.html">Careers</a></li>
+            <li><a href="press.html">Press</a></li>
+            <li><a href="contact.html">Contact</a></li>
           </ul>
         </div>
 
@@ -491,7 +492,7 @@
             <li><a href="privacy.html">Privacy Policy</a></li>
             <li><a href="refund.html">Refund Policy</a></li>
             <li><a href="#">Cookie Policy</a></li>
-            <li><a href="#">Security</a></li>
+            <li><a href="security.html">Security</a></li>
           </ul>
         </div>
       </div>
@@ -499,7 +500,7 @@
 
     <div class="footer-bottom">
       <div class="container footer-bottom-inner">
-        <p>© 2026 BrewTrack by Tamperline.us. All Rights Reserved.</p>
+        <p>© 2026 Tamperline.us. All Rights Reserved.</p>
         <address>📍 1021 E Lincolnway #9869, Cheyenne, WY 82001, USA</address>
         <div class="footer-legal-links">
           <a href="terms.html">Terms</a>
@@ -509,6 +510,17 @@
       </div>
     </div>
   </footer>
+
+  <!-- ========== DEMO VIDEO MODAL ========== -->
+  <div id="demoModal" class="demo-modal" onclick="if(event.target===this)closeDemoModal()">
+    <div class="demo-modal-card">
+      <button class="demo-close" onclick="closeDemoModal()" aria-label="Close video">&times;</button>
+      <div class="demo-video-wrap">
+        <iframe id="demoIframe" src="" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture"
+          allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Batches — BrewTrack</title>
+    <title>Batches — Tamperline.us</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -37,9 +37,57 @@
         .topbar-title { font-size: 18px; font-weight: 700; }
         .topbar-sub { font-size: 12px; color: var(--txt2); margin-top: 2px; }
         .topbar-right { display: flex; align-items: center; gap: 14px; }
-        .avatar-wrap { display: flex; align-items: center; gap: 10px; background: var(--bg3); border-radius: 40px; padding: 6px 14px 6px 8px; border: 1px solid var(--border); }
-        .avatar { width: 30px; height: 30px; background: linear-gradient(135deg, var(--accent), var(--blue)); border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 700; }
-        .avatar-name { font-size: 13px; font-weight: 600; }
+        .avatar-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(135deg, rgba(147,51,234,0.14), rgba(99,102,241,0.09));
+            border-radius: 12px;
+            padding: 8px 14px 8px 8px;
+            border: 1px solid rgba(147,51,234,0.32);
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .avatar-wrap:hover {
+            background: linear-gradient(135deg, rgba(147,51,234,0.22), rgba(99,102,241,0.16));
+            border-color: rgba(147,51,234,0.55);
+            box-shadow: 0 0 18px rgba(147,51,234,0.22);
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent), var(--blue));
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            font-size: 15px;
+            font-weight: 800;
+            flex-shrink: 0;
+            box-shadow: 0 0 12px rgba(147,51,234,0.45);
+        }
+
+        .avatar-info {
+            display: flex;
+            flex-direction: column;
+            line-height: 1;
+        }
+
+        .avatar-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--txt);
+        }
+
+        .avatar-role {
+            font-size: 10px;
+            color: var(--accent);
+            font-weight: 600;
+            margin-top: 3px;
+            letter-spacing: 0.04em;
+        }
         .notification-btn { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; width: 38px; height: 38px; display: grid; place-items: center; cursor: pointer; font-size: 16px; position: relative; }
         .notif-dot { position: absolute; top: 7px; right: 7px; width: 7px; height: 7px; background: var(--accent); border-radius: 50%; border: 2px solid var(--bg2); }
         .content { padding: 32px; flex: 1; }
@@ -148,9 +196,7 @@
         .pmenu-item.danger { color:var(--red); }
         .pmenu-item.danger:hover { background:rgba(248,113,113,0.08); }
         .pmenu-divider { height:1px; background:var(--border); margin:5px 0; }
-        .pmenu-icon { font-size:14px; width:18px; text-align:center; flex-shrink:0; }
-        .avatar-wrap { cursor:pointer; user-select:none; }
-        .chevron-icon { font-size:9px; color:var(--txt3); margin-left:2px; }
+        .pmenu-icon { font-size:14px; width:18px; text-align:center; flex-shrink:0; }        .chevron-icon { font-size:9px; color:var(--txt3); margin-left:2px; }
         .dropdown-wrap.active .notification-btn { background:rgba(147,51,234,0.15); border-color:rgba(147,51,234,0.3); }
     </style>
 </head>
@@ -236,7 +282,7 @@
                                 <div class="notif-icon" style="background:rgba(99,102,241,0.15);color:#6366f1">⚙️</div>
                                 <div class="notif-body">
                                     <div class="notif-title">System</div>
-                                    <div class="notif-desc">BrewTrack updated to v2.4.1 — see what's new</div>
+                                    <div class="notif-desc">Tamperline.us updated to v2.4.1 — see what's new</div>
                                     <div class="notif-time">3 days ago</div>
                                 </div>
                             </div>
@@ -248,12 +294,15 @@
                 <div class="dropdown-wrap" id="profileWrap">
                     <div class="avatar-wrap" onclick="toggleDropdown('profileDrop','profileWrap')">
                         <div class="avatar">B</div>
-                        <div class="avatar-name">My Brewery</div>
-                        <svg class="chevron-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                        <div class="avatar-info">
+                            <div class="avatar-name">My Brewery</div>
+                            <div class="avatar-role">✦ Barrel Plan</div>
+                        </div>
+                        <svg class="chevron-icon" viewBox="0 0 20 20" fill="currentColor" style="width:16px;height:16px;flex-shrink:0;"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
                     </div>
                     <div class="dropdown profile-dropdown" id="profileDrop">
                         <div class="profile-hdr">
-                            <div class="avatar" style="width:38px;height:38px;font-size:16px">B</div>
+                            <div class="avatar" style="width:40px;height:40px;font-size:17px;border-radius:11px;">B</div>
                             <div>
                                 <div class="profile-hdr-name">My Brewery</div>
                                 <div class="profile-hdr-role">Owner · Barrel Plan</div>
@@ -421,17 +470,19 @@
         </div>
     </div>
 
+    <script src="tldata.js"></script>
     <script>
-        let batchesData = [
-            { id: 48, name: 'West Coast IPA',  style: 'IPA',          volume: 320, started: 'Feb 18, 2026', estReady: 'Mar 4, 2026',  status: 'fermenting',  abv: 6.8, ibu: 72,  yeast: 'WLP001', notes: 'Dry hop with Citra & Mosaic at day 5.' },
-            { id: 47, name: 'Amber Ale',        style: 'American Ale', volume: 180, started: 'Feb 10, 2026', estReady: 'Feb 28, 2026', status: 'conditioning', abv: 5.2, ibu: 32,  yeast: 'US-05',  notes: 'Traditional amber with Crystal 60L.' },
-            { id: 46, name: 'Stout Porter',     style: 'Porter',       volume: 240, started: 'Feb 2, 2026',  estReady: 'Feb 20, 2026', status: 'ready',        abv: 6.1, ibu: 45,  yeast: 'WLP004', notes: 'Rich chocolate and coffee notes.' },
-            { id: 45, name: 'Wheat Lager',      style: 'Lager',        volume: 200, started: 'Jan 28, 2026', estReady: 'Feb 15, 2026', status: 'ready',        abv: 4.5, ibu: 18,  yeast: 'W-34/70',notes: 'Light and refreshing summer lager.' },
-            { id: 44, name: 'Pale Ale',         style: 'American Ale', volume: 160, started: 'Jan 20, 2026', estReady: 'Feb 8, 2026',  status: 'low-stock',    abv: 5.6, ibu: 38,  yeast: 'US-05',  notes: 'Classic American Pale Ale, Cascade hops.' },
-            { id: 43, name: 'Belgian Wit',      style: 'Wheat',        volume: 280, started: 'Jan 12, 2026', estReady: 'Feb 1, 2026',  status: 'ready',        abv: 4.9, ibu: 15,  yeast: 'WLP400', notes: 'Orange peel and coriander spiced.' },
-            { id: 42, name: 'Double IPA',       style: 'IPA',          volume: 120, started: 'Jan 5, 2026',  estReady: 'Jan 28, 2026', status: 'ready',        abv: 8.4, ibu: 95,  yeast: 'WLP001', notes: 'High gravity DIPA with Simcoe & Centennial.' },
-        ];
-        let nextBatchId = 49;
+        // Load batches from localStorage (per user)
+        let _tlD = TL_getData();
+        let batchesData = _tlD.batches;
+        let nextBatchId = _tlD.nextBatchId || 49;
+
+        function _saveBatches() {
+            const d = TL_getData();
+            d.batches = batchesData;
+            d.nextBatchId = nextBatchId;
+            TL_saveData(d);
+        }
 
         const statusBadge = {
             fermenting:  '<span class="badge badge-blue">Fermenting</span>',
@@ -505,6 +556,7 @@
                 started: startFmt, estReady: endFmt,
                 status: 'fermenting', abv, ibu, yeast, notes
             });
+            _saveBatches();
 
             document.getElementById('newBatchForm').style.display = 'none';
             document.getElementById('newBatchSuccessMsg').textContent =
@@ -536,6 +588,7 @@
             if (!b) return;
             if (confirm(`Archive Batch #${b.id} — "${b.name}"?`)) {
                 batchesData = batchesData.filter(x => x.id !== id);
+                _saveBatches();
                 filterBatches();
             }
         }
@@ -570,6 +623,7 @@
             o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
         });
 
+        TL_initUI();
         renderBatchTable();
     </script>
 </body>
