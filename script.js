@@ -368,17 +368,18 @@ document.addEventListener("keydown", e => {
 
 function openDemoModal() {
   const modal = document.getElementById('demoModal');
-  const iframe = document.getElementById('demoIframe');
-  iframe.src = 'https://www.youtube.com/embed/d8SOYDO4Xwk?autoplay=1';
+  const video = document.getElementById('demoVideo');
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
+  video.play();
 }
 
 function closeDemoModal() {
   const modal = document.getElementById('demoModal');
   if (!modal) return;
-  const iframe = document.getElementById('demoIframe');
+  const video = document.getElementById('demoVideo');
   modal.classList.remove('open');
-  iframe.src = '';
+  video.pause();
+  video.currentTime = 0;
   document.body.style.overflow = 'auto';
 }
