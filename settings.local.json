@@ -216,7 +216,9 @@
       "Bash(done)",
       "Bash(\"F:/collabspacefrontend-main/update_avatar.py\":*)",
       "Bash(python \"F:/collabspacefrontend-main/update_avatar.py\")",
-      "Read(//f/collabspacefrontend-main/**)"
+      "Read(//f/collabspacefrontend-main/**)",
+      "Bash(ls f:/collabspacefrontend-main/*.html)",
+      "Bash(grep -l 'aria-label=\"\"LinkedIn\"\"' f:/collabspacefrontend-main/*.html)"
     ]
   }
 }
