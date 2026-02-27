@@ -827,7 +827,7 @@
                                 &amp; Plan</a>
                             <a class="pmenu-item" href="dashboard.html"><span class="pmenu-icon">🏠</span>Dashboard</a>
                             <div class="pmenu-divider"></div>
-                            <a class="pmenu-item" href="#"><span class="pmenu-icon">❓</span>Help &amp; Support</a>
+                            <a class="pmenu-item" href="contact.html"><span class="pmenu-icon">❓</span>Help &amp; Support</a>
                             <div class="pmenu-divider"></div>
                             <a class="pmenu-item danger" href="#" onclick="logout();return false;"><span
                                     class="pmenu-icon">🚪</span>Log Out</a>
@@ -842,13 +842,13 @@
             <div class="stats-row">
                 <div class="stat-card">
                     <div class="stat-icon green">💰</div>
-                    <div class="stat-value">$18,430</div>
-                    <div class="stat-label">Revenue MTD</div>
+                    <div class="stat-value" id="statRevenue">$18,430</div>
+                    <div class="stat-label" id="statRevenueLabel">Revenue MTD</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon blue">🛢️</div>
-                    <div class="stat-value">842</div>
-                    <div class="stat-label">Units Sold (kegs)</div>
+                    <div class="stat-value" id="statUnits">842</div>
+                    <div class="stat-label" id="statUnitsLabel">Units Sold (kegs)</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon purple">🏆</div>
@@ -857,7 +857,7 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon orange">📋</div>
-                    <div class="stat-value">$218</div>
+                    <div class="stat-value" id="statAvgOrder">$218</div>
                     <div class="stat-label">Avg Order Value</div>
                 </div>
             </div>
@@ -869,7 +869,7 @@
                     <div class="panel-header">
                         <div class="panel-title">📈 Revenue Trend</div>
                         <div class="filter-row">
-                            <select class="filter-select">
+                            <select class="filter-select" onchange="updateRevenueChart(this.value)">
                                 <option>Last 7 Months</option>
                                 <option>Last 12 Months</option>
                             </select>
@@ -1021,7 +1021,37 @@
         };
 
         // Revenue Trend Line Chart
-        new Chart(document.getElementById('revenueChart').getContext('2d'), {
+        const revenueChartData = {
+            '7': {
+                labels: ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'],
+                data: [12400, 13800, 15200, 17900, 21300, 19100, 18430],
+                revenue: '$18,430', revenueLabel: 'Revenue MTD',
+                units: '842', unitsLabel: 'Units Sold (kegs)',
+                avgOrder: '$218'
+            },
+            '12': {
+                labels: ['Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'],
+                data: [8200, 9500, 10800, 11200, 11900, 12400, 13800, 15200, 17900, 21300, 19100, 18430],
+                revenue: '$169,730', revenueLabel: 'Revenue (12 Mo)',
+                units: '3,840', unitsLabel: 'Units Sold (12 Mo)',
+                avgOrder: '$221'
+            }
+        };
+
+        function updateRevenueChart(val) {
+            const key = val.includes('12') ? '12' : '7';
+            const d = revenueChartData[key];
+            window.revenueChart.data.labels = d.labels;
+            window.revenueChart.data.datasets[0].data = d.data;
+            window.revenueChart.update();
+            document.getElementById('statRevenue').textContent = d.revenue;
+            document.getElementById('statRevenueLabel').textContent = d.revenueLabel;
+            document.getElementById('statUnits').textContent = d.units;
+            document.getElementById('statUnitsLabel').textContent = d.unitsLabel;
+            document.getElementById('statAvgOrder').textContent = d.avgOrder;
+        }
+
+        window.revenueChart = new Chart(document.getElementById('revenueChart').getContext('2d'), {
             type: 'line',
             data: {
                 labels: ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'],
