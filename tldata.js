@@ -120,6 +120,34 @@ function TL_initUI() {
     }
 }
 
+/* ── Fire any pending delivery-day email reminders ── *
+   Called automatically on every dashboard page load.
+   Requires EmailJS to be initialised on the host page.   */
+function TL_fireDeliveryReminders() {
+    if (typeof emailjs === 'undefined') return; // EmailJS not loaded on this page
+    const EMAILJS_SERVICE_ID        = typeof window.EMAILJS_SERVICE_ID        !== 'undefined' ? window.EMAILJS_SERVICE_ID        : null;
+    const EMAILJS_REMINDER_TEMPLATE = typeof window.EMAILJS_REMINDER_TEMPLATE !== 'undefined' ? window.EMAILJS_REMINDER_TEMPLATE : null;
+    const EMAILJS_CONFIGURED        = typeof window.EMAILJS_CONFIGURED        !== 'undefined' ? window.EMAILJS_CONFIGURED        : false;
+    if (!EMAILJS_CONFIGURED || !EMAILJS_SERVICE_ID || !EMAILJS_REMINDER_TEMPLATE) return;
+
+    const today = new Date().toISOString().slice(0, 10);
+    const key   = 'tl_pending_reminders';
+    const list  = JSON.parse(localStorage.getItem(key) || '[]');
+    let changed = false;
+    list.forEach(r => {
+        if (!r.sent && r.date === today) {
+            emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_REMINDER_TEMPLATE, {
+                to_email  : r.toEmail,
+                event_name: r.eventName,
+                event_date: r.date
+            }).catch(() => {});
+            r.sent = true;
+            changed = true;
+        }
+    });
+    if (changed) localStorage.setItem(key, JSON.stringify(list));
+}
+
 /* ── Export all user data as a downloadable JSON file ── */
 function TL_exportData() {
     const user = TL_getUserInfo();

@@ -362,6 +362,232 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape") { closeAuthModal(); closeDemoModal(); }
 });
 
+/* ============================================================
+   FORGOT PASSWORD — 3-step OTP flow
+   Uses EmailJS service already configured in bookings.html.
+
+   EmailJS OTP Template setup (one-time, 2 min):
+     1. emailjs.com → Email Templates → Create New Template
+     2. Set "To Email" field to: {{to_email}}
+        Set "From Name" to:     Tamperline.us
+        Set Reply-To to:        tamperline1@gmail.com
+        Subject: Your Tamperline.us Password Reset Code
+        Body:
+          Hi,
+          Your verification code is: {{otp_code}}
+          This code expires in 5 minutes.
+          — Tamperline.us Team
+     3. Copy the Template ID and paste it below:
+   ============================================================ */
+const FP_EMAILJS_PUBLIC_KEY = 'jAbKS8vkaS0hxeIO3';  // same as bookings
+const FP_EMAILJS_SERVICE_ID = 'service_najqzkr';      // same as bookings
+const FP_OTP_TEMPLATE_ID = 'template_3xmghlh';      // ← create this template & paste real ID here
+
+/* In-memory OTP session (never written to disk) */
+let _fpOTP = null;   // 6-digit string
+let _fpEmail = null;   // email being reset
+let _fpExpiry = null;   // Date.now() + 5min
+let _fpTimerIv = null;   // setInterval ref
+
+/* ── Show/hide helpers ── */
+function showForgotPassword() {
+  document.getElementById('form-login').style.display = 'none';
+  document.getElementById('form-signup').style.display = 'none';
+  document.querySelector('.auth-tabs').style.display = 'none';
+  document.getElementById('auth-success').style.display = 'none';
+  document.getElementById('fp-panel').style.display = 'block';
+  _fpShowStep(1);
+  document.getElementById('fp-email').value = document.getElementById('login-email').value || '';
+  document.getElementById('fp-email-msg').textContent = '';
+  document.getElementById('fp-send-status').textContent = '';
+}
+
+function hideForgotPassword() {
+  _fpClearTimer();
+  document.getElementById('fp-panel').style.display = 'none';
+  document.querySelector('.auth-tabs').style.display = '';
+  document.getElementById('form-login').style.display = '';
+  switchTab('login');
+}
+
+function _fpShowStep(n) {
+  [1, 2, 3].forEach(i => {
+    const el = document.getElementById('fp-step' + i);
+    if (el) el.style.display = (i === n) ? '' : 'none';
+  });
+}
+
+/* ── Step 1: validate email + send OTP ── */
+function fpSubmitEmail() {
+  const emailInput = document.getElementById('fp-email');
+  const msg = document.getElementById('fp-email-msg');
+  const status = document.getElementById('fp-send-status');
+  const email = emailInput.value.trim().toLowerCase();
+
+  msg.textContent = '';
+  status.textContent = '';
+
+  if (!email) {
+    msg.textContent = '✗ Please enter your email address.';
+    msg.className = 'field-msg invalid'; return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    msg.textContent = '✗ Please enter a valid email.';
+    msg.className = 'field-msg invalid'; return;
+  }
+
+  const stored = localStorage.getItem('tl_user_' + email);
+  if (!stored) {
+    msg.textContent = '✗ No account found with this email.';
+    msg.className = 'field-msg invalid'; return;
+  }
+
+  /* Generate 6-digit OTP */
+  _fpEmail = email;
+  _fpOTP = String(Math.floor(100000 + Math.random() * 900000));
+  _fpExpiry = Date.now() + 5 * 60 * 1000; // 5 minutes
+
+  status.innerHTML = '<span style="color:#9333ea;">📧 Sending verification code…</span>';
+
+  /* Initialise EmailJS and send (loaded via CDN — referenced as window.emailjs) */
+  const ejs = window.emailjs;
+  try { ejs.init(FP_EMAILJS_PUBLIC_KEY); } catch (e) { }
+
+  ejs.send(FP_EMAILJS_SERVICE_ID, FP_OTP_TEMPLATE_ID, {
+    to_email: email,
+    otp_code: _fpOTP
+  }).then(() => {
+    status.innerHTML = '<span style="color:#10b981;">✅ Code sent! Check your inbox.</span>';
+    setTimeout(() => _fpGoToStep2(), 900);
+  }).catch(() => {
+    /* EmailJS template not yet created — show OTP on screen for dev/testing */
+    status.innerHTML =
+      '<span style="color:#f59e0b;">⚠️ Email not configured yet.<br>' +
+      'Your OTP (dev mode): <strong style="letter-spacing:0.2em;">' + _fpOTP + '</strong></span>';
+    setTimeout(() => _fpGoToStep2(), 2000);
+  });
+}
+
+function _fpGoToStep2() {
+  document.getElementById('fp-step2-sub').textContent =
+    'A 6-digit code has been sent to ' + _fpEmail + '. Check your inbox (and spam).';
+  document.getElementById('fp-otp').value = '';
+  document.getElementById('fp-otp-msg').textContent = '';
+  _fpShowStep(2);
+  _fpStartTimer();
+}
+
+/* ── Countdown timer (5 min) ── */
+function _fpStartTimer() {
+  _fpClearTimer();
+  function tick() {
+    const left = Math.max(0, _fpExpiry - Date.now());
+    const m = Math.floor(left / 60000);
+    const s = Math.floor((left % 60000) / 1000);
+    const timerEl = document.getElementById('fp-timer');
+    if (timerEl) timerEl.textContent = m + ':' + String(s).padStart(2, '0');
+    if (left === 0) {
+      _fpClearTimer();
+      const otpMsg = document.getElementById('fp-otp-msg');
+      if (otpMsg) { otpMsg.textContent = '✗ Code expired. Please request a new one.'; otpMsg.className = 'field-msg invalid'; }
+      _fpOTP = null;
+    }
+  }
+  tick();
+  _fpTimerIv = setInterval(tick, 1000);
+}
+
+function _fpClearTimer() {
+  if (_fpTimerIv) { clearInterval(_fpTimerIv); _fpTimerIv = null; }
+}
+
+/* ── Resend OTP ── */
+function fpResendOTP() {
+  _fpClearTimer();
+  _fpShowStep(1);
+  document.getElementById('fp-send-status').textContent = '';
+}
+
+/* ── Step 2: verify OTP ── */
+function fpVerifyOTP() {
+  const entered = document.getElementById('fp-otp').value.trim();
+  const msg = document.getElementById('fp-otp-msg');
+
+  if (!entered || entered.length !== 6) {
+    msg.textContent = '✗ Please enter the 6-digit code.';
+    msg.className = 'field-msg invalid'; return;
+  }
+  if (!_fpOTP || Date.now() > _fpExpiry) {
+    msg.textContent = '✗ Code has expired. Please request a new one.';
+    msg.className = 'field-msg invalid'; return;
+  }
+  if (entered !== _fpOTP) {
+    msg.textContent = '✗ Incorrect code. Please try again.';
+    msg.className = 'field-msg invalid';
+    document.getElementById('fp-otp').classList.add('input-invalid');
+    return;
+  }
+
+  /* OTP matched */
+  _fpClearTimer();
+  _fpOTP = null; // consume it — cannot reuse
+  document.getElementById('fp-newpass').value = '';
+  document.getElementById('fp-confirmpass').value = '';
+  document.getElementById('fp-newpass-msg').textContent = '';
+  document.getElementById('fp-confirm-msg').textContent = '';
+  _fpShowStep(3);
+}
+
+/* ── Step 3: set new password ── */
+function fpSetNewPassword() {
+  const newPass = document.getElementById('fp-newpass').value;
+  const confirm = document.getElementById('fp-confirmpass').value;
+  const passMsg = document.getElementById('fp-newpass-msg');
+  const confMsg = document.getElementById('fp-confirm-msg');
+
+  passMsg.textContent = '';
+  confMsg.textContent = '';
+
+  if (newPass.length < 8) {
+    passMsg.textContent = '✗ Password must be at least 8 characters.';
+    passMsg.className = 'field-msg invalid'; return;
+  }
+  if (newPass !== confirm) {
+    confMsg.textContent = '✗ Passwords do not match.';
+    confMsg.className = 'field-msg invalid'; return;
+  }
+
+  /* Update password in localStorage */
+  const raw = localStorage.getItem('tl_user_' + _fpEmail);
+  if (!raw) {
+    passMsg.textContent = '✗ Account not found. Please try again.';
+    passMsg.className = 'field-msg invalid'; return;
+  }
+  const user = JSON.parse(raw);
+  user.password = newPass;
+  localStorage.setItem('tl_user_' + _fpEmail, JSON.stringify(user));
+
+  /* Show success, then return to login */
+  _fpShowStep(3);
+  document.getElementById('fp-step3').innerHTML =
+    '<div class="auth-brand" style="margin-bottom:20px;">' +
+    '<div class="logo-box" style="margin:0 auto 12px;width:48px;height:48px;font-size:18px;">✅</div>' +
+    '<h2 class="auth-title">Password Updated!</h2>' +
+    '<p class="auth-sub">Your password has been changed successfully.<br>Redirecting to sign in…</p>' +
+    '</div>';
+
+  _fpEmail = null;
+  setTimeout(() => hideForgotPassword(), 2000);
+}
+
+/* Wire up the "Forgot password?" link */
+document.addEventListener('DOMContentLoaded', () => {
+  const forgotLink = document.querySelector('.auth-forgot');
+  if (forgotLink) {
+    forgotLink.addEventListener('click', e => { e.preventDefault(); showForgotPassword(); });
+  }
+});
+
 /* ============================================
    DEMO VIDEO MODAL
    ============================================ */
