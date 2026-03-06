@@ -86,6 +86,13 @@ function closeAuthModal() {
   document.body.style.overflow = "auto";
 }
 
+/* ── Show / Hide password toggle ── */
+function togglePasswordVisibility(inputId, checkbox) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  input.type = checkbox.checked ? 'text' : 'password';
+}
+
 /* Switch between Login / Signup tabs */
 function switchTab(tab) {
   const loginForm = document.getElementById("form-login");
