@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -735,7 +735,7 @@
                                 &amp; Plan</a>
                             <a class="pmenu-item" href="dashboard.html"><span class="pmenu-icon">🏠</span>Dashboard</a>
                             <div class="pmenu-divider"></div>
-                            <a class="pmenu-item" href="contact.html"><span class="pmenu-icon">❓</span>Help &amp;
+                            <a class="pmenu-item" href="help-support.html"><span class="pmenu-icon">❓</span>Help &amp;
                                 Support</a>
                             <div class="pmenu-divider"></div>
                             <a class="pmenu-item danger" href="#" onclick="openDeleteAccountModal();return false;"><span
@@ -753,22 +753,22 @@
             <div class="stats-row">
                 <div class="stat-card">
                     <div class="stat-icon green">🏆</div>
-                    <div class="stat-value">Dec 2025</div>
-                    <div class="stat-label">Best Month · $21,300</div>
+                    <div class="stat-value" id="insBestMonth">Dec 2025</div>
+                    <div class="stat-label" id="insBestMonthLabel">Best Month 21,300</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon purple">🍺</div>
-                    <div class="stat-value">West Coast IPA</div>
-                    <div class="stat-label">Best Seller · 35% of volume</div>
+                    <div class="stat-value" id="insBestSeller">West Coast IPA</div>
+                    <div class="stat-label" id="insBestSellerLabel">Best Seller 35% of volume</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon blue">⚡</div>
-                    <div class="stat-value">84.2%</div>
+                    <div class="stat-value" id="insEfficiency">84.2%</div>
                     <div class="stat-label">Brew Efficiency</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon orange">♻️</div>
-                    <div class="stat-value">3.1%</div>
+                    <div class="stat-value" id="insWaste">3.1%</div>
                     <div class="stat-label">Avg Waste Rate</div>
                 </div>
             </div>
@@ -861,13 +861,135 @@
             padding: 12
         };
 
-        // Doughnut — Style Distribution
+        const DEMO_INSIGHTS = {
+            styles: { labels: ['IPA', 'American Ale', 'Porter/Stout', 'Lager', 'Wheat', 'Other'], values: [35, 25, 18, 12, 7, 3] },
+            monthly: { labels: ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'], production: [820, 960, 1100, 1340, 1560, 1280, 1100], sales: [750, 890, 1050, 1280, 1490, 1210, 980] },
+            costs: { labels: ['IPA', 'Amber Ale', 'Stout', 'Lager', 'Wheat', 'Belgian'], values: [4.80, 3.90, 4.20, 3.40, 3.60, 4.10] },
+            customers: { labels: ['Ridgeline Tap', 'City Bottle Shop', 'Hopscotch Bar', 'Westside Grill', 'Online Store'], values: [8400, 5200, 3800, 2900, 1800] },
+            stats: { bestMonth: 'Dec 2025', bestMonthLabel: 'Best Month � $21,300', bestSeller: 'West Coast IPA', bestSellerLabel: 'Best Seller � 35% of volume', efficiency: '84.2%', waste: '3.1%' }
+        };
+
+        function _parseDate(s) {
+            const t = Date.parse(s || '');
+            return isNaN(t) ? null : new Date(t);
+        }
+
+        function _bookingTotal(b) {
+            const dep = parseFloat(b.deposit) || 0;
+            const toPay = parseFloat(b.amountToPay);
+            if (Number.isFinite(toPay)) return Math.max(0, dep + toPay);
+            return 500;
+        }
+
+        function _buildRealInsights() {
+            const data = TL_getData();
+            const batches = (data.batches || []).filter(b => !b._demo);
+            const bookings = (data.bookings || []).filter(b => !b._demo);
+            const inventory = (data.inventory || []).filter(i => !i._demo);
+            const now = new Date();
+
+            const styleVol = {};
+            batches.forEach(b => {
+                const k = b.style || 'Other';
+                styleVol[k] = (styleVol[k] || 0) + (parseFloat(b.volume) || 0);
+            });
+            let styles = Object.entries(styleVol).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            const other = Object.entries(styleVol).slice(5).reduce((s, x) => s + x[1], 0);
+            if (other > 0) styles.push(['Other', other]);
+            if (!styles.length) styles = [['Other', 1]];
+            const totalStyle = styles.reduce((s, x) => s + x[1], 0) || 1;
+            const stylePct = styles.map(x => Math.round((x[1] / totalStyle) * 100));
+
+            const months = [];
+            const monthLabels = [];
+            for (let i = 6; i >= 0; i -= 1) {
+                const dt = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                months.push(dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0'));
+                monthLabels.push(dt.toLocaleDateString('en-US', { month: 'short' }));
+            }
+            const production = Object.fromEntries(months.map(m => [m, 0]));
+            const sales = Object.fromEntries(months.map(m => [m, 0]));
+            batches.forEach(b => {
+                const dt = _parseDate(b.started);
+                if (!dt) return;
+                const key = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0');
+                if (Object.prototype.hasOwnProperty.call(production, key)) production[key] += (parseFloat(b.volume) || 0);
+            });
+            bookings.forEach(b => {
+                const dt = _parseDate(b.date);
+                if (!dt) return;
+                const key = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0');
+                if (Object.prototype.hasOwnProperty.call(sales, key)) sales[key] += Math.max(0, Math.round((parseInt(b.guests, 10) || 0) / 2));
+            });
+
+            const avgInvCost = inventory.length ? inventory.reduce((s, i) => s + (parseFloat(i.cost) || 0), 0) / inventory.length : 2.5;
+            const costLabels = styles.map(x => x[0]).slice(0, 6);
+            const costValues = costLabels.map(lbl => {
+                const sample = batches.find(b => (b.style || 'Other') === lbl);
+                const abv = sample ? (parseFloat(sample.abv) || 5) : 5;
+                return Number((avgInvCost * (1 + abv / 20)).toFixed(2));
+            });
+
+            const customerRev = {};
+            bookings.forEach(b => {
+                const name = b.name || 'Walk-in';
+                customerRev[name] = (customerRev[name] || 0) + _bookingTotal(b);
+            });
+            let customers = Object.entries(customerRev).sort((a, b) => b[1] - a[1]).slice(0, 5);
+            if (!customers.length) customers = [['No customers yet', 0]];
+
+            const bestStyle = styles[0] ? styles[0][0] : '�';
+            const bestStylePct = stylePct[0] || 0;
+
+            const last12 = [];
+            for (let i = 11; i >= 0; i -= 1) {
+                const dt = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const key = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0');
+                const rev = bookings
+                    .filter(b => {
+                        const d = _parseDate(b.date);
+                        return d && (d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')) === key;
+                    })
+                    .reduce((s, b) => s + _bookingTotal(b), 0);
+                last12.push({ dt, revenue: rev });
+            }
+            const bestMonth = last12.sort((a, b) => b.revenue - a.revenue)[0];
+            const readyCount = batches.filter(b => ['ready', 'ready-for-sale'].includes((b.status || '').toLowerCase())).length;
+            const efficiency = batches.length ? ((readyCount / batches.length) * 100) : 0;
+            const lowCount = inventory.filter(i => (i.status || '').toLowerCase() === 'low').length;
+            const waste = inventory.length ? ((lowCount / inventory.length) * 100) : 0;
+
+            return {
+                styles: { labels: styles.map(x => x[0]), values: stylePct },
+                monthly: { labels: monthLabels, production: months.map(m => Math.round(production[m])), sales: months.map(m => Math.round(sales[m])) },
+                costs: { labels: costLabels, values: costValues },
+                customers: { labels: customers.map(x => x[0]), values: customers.map(x => Math.round(x[1])) },
+                stats: {
+                    bestMonth: bestMonth && bestMonth.revenue > 0 ? bestMonth.dt.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '�',
+                    bestMonthLabel: bestMonth && bestMonth.revenue > 0 ? ('Best Month � $' + Math.round(bestMonth.revenue).toLocaleString()) : 'Best Month � $0',
+                    bestSeller: bestStyle,
+                    bestSellerLabel: 'Best Seller � ' + bestStylePct + '% of volume',
+                    efficiency: efficiency.toFixed(1) + '%',
+                    waste: waste.toFixed(1) + '%'
+                }
+            };
+        }
+
+        const insightsData = TL_isTrialActive() ? DEMO_INSIGHTS : _buildRealInsights();
+
+        document.getElementById('insBestMonth').textContent = insightsData.stats.bestMonth;
+        document.getElementById('insBestMonthLabel').textContent = insightsData.stats.bestMonthLabel;
+        document.getElementById('insBestSeller').textContent = insightsData.stats.bestSeller;
+        document.getElementById('insBestSellerLabel').textContent = insightsData.stats.bestSellerLabel;
+        document.getElementById('insEfficiency').textContent = insightsData.stats.efficiency;
+        document.getElementById('insWaste').textContent = insightsData.stats.waste;
+
         new Chart(document.getElementById('styleChart').getContext('2d'), {
             type: 'doughnut',
             data: {
-                labels: ['IPA', 'American Ale', 'Porter/Stout', 'Lager', 'Wheat', 'Other'],
+                labels: insightsData.styles.labels,
                 datasets: [{
-                    data: [35, 25, 18, 12, 7, 3],
+                    data: insightsData.styles.values,
                     backgroundColor: ['#9333ea', '#6366f1', '#60a5fa', '#10b981', '#f59e0b', '#64748b'],
                     borderColor: '#13132a',
                     borderWidth: 3,
@@ -888,22 +1010,21 @@
             }
         });
 
-        // Grouped Bar — Monthly Volume
         new Chart(document.getElementById('volumeChart').getContext('2d'), {
             type: 'bar',
             data: {
-                labels: ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'],
+                labels: insightsData.monthly.labels,
                 datasets: [
                     {
                         label: 'Production (gal)',
-                        data: [820, 960, 1100, 1340, 1560, 1280, 1100],
+                        data: insightsData.monthly.production,
                         backgroundColor: 'rgba(147,51,234,0.7)',
                         borderRadius: 5,
                         borderSkipped: false
                     },
                     {
                         label: 'Sales (gal)',
-                        data: [750, 890, 1050, 1280, 1490, 1210, 980],
+                        data: insightsData.monthly.sales,
                         backgroundColor: 'rgba(96,165,250,0.55)',
                         borderRadius: 5,
                         borderSkipped: false
@@ -927,14 +1048,13 @@
             }
         });
 
-        // Horizontal Bar — Cost Per Gallon
         new Chart(document.getElementById('costChart').getContext('2d'), {
             type: 'bar',
             data: {
-                labels: ['IPA', 'Amber Ale', 'Stout', 'Lager', 'Wheat', 'Belgian'],
+                labels: insightsData.costs.labels,
                 datasets: [{
                     label: 'Cost/Gal ($)',
-                    data: [4.80, 3.90, 4.20, 3.40, 3.60, 4.10],
+                    data: insightsData.costs.values,
                     backgroundColor: 'rgba(96,165,250,0.7)',
                     borderRadius: 6,
                     borderSkipped: false
@@ -958,14 +1078,13 @@
             }
         });
 
-        // Horizontal Bar — Top Customers
         new Chart(document.getElementById('customersChart').getContext('2d'), {
             type: 'bar',
             data: {
-                labels: ['Ridgeline Tap', 'City Bottle Shop', 'Hopscotch Bar', 'Westside Grill', 'Online Store'],
+                labels: insightsData.customers.labels,
                 datasets: [{
                     label: 'Revenue ($)',
-                    data: [8400, 5200, 3800, 2900, 1800],
+                    data: insightsData.customers.values,
                     backgroundColor: 'rgba(16,185,129,0.7)',
                     borderRadius: 6,
                     borderSkipped: false
@@ -1054,4 +1173,9 @@
 </body>
 
 </html>
+
+
+
+
+
 

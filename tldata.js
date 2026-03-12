@@ -151,8 +151,33 @@ function TL_getUserInfo() {
     return raw ? JSON.parse(raw) : null;
 }
 
+/* Repair mojibake text nodes produced by prior encoding mismatch saves */
+function TL_fixMojibakeText(root) {
+    const target = root || document.body;
+    if (!target) return;
+
+    const maybeBroken = /[ÃÂð]/;
+    const walker = document.createTreeWalker(target, NodeFilter.SHOW_TEXT, null);
+    const edits = [];
+
+    while (walker.nextNode()) {
+        const node = walker.currentNode;
+        const txt = node.nodeValue || '';
+        if (!maybeBroken.test(txt)) continue;
+        try {
+            const fixed = decodeURIComponent(escape(txt));
+            if (fixed && fixed !== txt) edits.push([node, fixed]);
+        } catch (_) {
+            // Keep original text when decode fails.
+        }
+    }
+
+    edits.forEach(([node, fixed]) => { node.nodeValue = fixed; });
+}
+
 /* ── Init UI — applies user/company info to every dashboard page ── */
 function TL_initUI() {
+    TL_fixMojibakeText(document.body);
     const user = TL_getUserInfo();
     if (!user) return;
 

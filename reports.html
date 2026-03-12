@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -829,7 +829,7 @@
                                 &amp; Plan</a>
                             <a class="pmenu-item" href="dashboard.html"><span class="pmenu-icon">🏠</span>Dashboard</a>
                             <div class="pmenu-divider"></div>
-                            <a class="pmenu-item" href="contact.html"><span class="pmenu-icon">❓</span>Help &amp;
+                            <a class="pmenu-item" href="help-support.html"><span class="pmenu-icon">❓</span>Help &amp;
                                 Support</a>
                             <div class="pmenu-divider"></div>
                             <a class="pmenu-item danger" href="#" onclick="openDeleteAccountModal();return false;"><span
@@ -857,7 +857,7 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon purple">🏆</div>
-                    <div class="stat-value" style="font-size:16px;line-height:1.4;">West Coast IPA</div>
+                    <div class="stat-value" id="statTopSeller" style="font-size:16px;line-height:1.4;">West Coast IPA</div>
                     <div class="stat-label">Top Seller</div>
                 </div>
                 <div class="stat-card">
@@ -901,7 +901,7 @@
             <div class="panel">
                 <div class="panel-header">
                     <div class="panel-title">Recent Transactions</div>
-                    <span class="panel-badge">February 2026</span>
+                    <span class="panel-badge" id="txMonthBadge">February 2026</span>
                 </div>
                 <table>
                     <thead>
@@ -914,7 +914,7 @@
                             <th>Channel</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="transactionsBody">
                         <tr>
                             <td>Feb 24</td>
                             <td>Wholesale Order</td>
@@ -1025,27 +1025,179 @@
             padding: 12
         };
 
-        // Revenue Trend Line Chart
-        const revenueChartData = {
+        const DEMO_REPORT_DATA = {
             '7': {
                 labels: ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'],
                 data: [12400, 13800, 15200, 17900, 21300, 19100, 18430],
-                revenue: '$18,430', revenueLabel: 'Revenue MTD',
-                units: '842', unitsLabel: 'Units Sold (kegs)',
-                avgOrder: '$218'
+                revenue: '$18,430',
+                revenueLabel: 'Revenue MTD',
+                units: '842',
+                unitsLabel: 'Units Sold (kegs)',
+                avgOrder: '$218',
+                topSeller: 'West Coast IPA'
             },
             '12': {
                 labels: ['Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'],
                 data: [8200, 9500, 10800, 11200, 11900, 12400, 13800, 15200, 17900, 21300, 19100, 18430],
-                revenue: '$169,730', revenueLabel: 'Revenue (12 Mo)',
-                units: '3,840', unitsLabel: 'Units Sold (12 Mo)',
-                avgOrder: '$221'
-            }
+                revenue: '$169,730',
+                revenueLabel: 'Revenue (12 Mo)',
+                units: '3,840',
+                unitsLabel: 'Units Sold (12 Mo)',
+                avgOrder: '$221',
+                topSeller: 'West Coast IPA'
+            },
+            topProducts: {
+                labels: ['W.C. IPA', 'Amber Ale', 'Stout', 'W. Lager', 'Pale Ale', 'Other'],
+                data: [6200, 3800, 3100, 2450, 1900, 980]
+            },
+            transactions: [
+                { date: 'Feb 24', description: 'Wholesale Order', product: 'West Coast IPA', qty: 12, amount: 2160, channel: 'Wholesale' },
+                { date: 'Feb 23', description: 'Taproom Sales', product: 'Amber Ale', qty: 4, amount: 480, channel: 'Taproom' },
+                { date: 'Feb 22', description: 'Retail Keg Sale', product: 'Stout Porter', qty: 8, amount: 1040, channel: 'Retail' },
+                { date: 'Feb 21', description: 'Event Pour', product: 'Wheat Lager', qty: 2, amount: 190, channel: 'Events' },
+                { date: 'Feb 20', description: 'Wholesale Order', product: 'West Coast IPA', qty: 20, amount: 3600, channel: 'Wholesale' },
+                { date: 'Feb 18', description: 'Taproom Sales', product: 'Belgian Wit', qty: 3, amount: 360, channel: 'Taproom' },
+                { date: 'Feb 17', description: 'Retail Keg Sale', product: 'Pale Ale', qty: 6, amount: 720, channel: 'Retail' },
+                { date: 'Feb 15', description: 'Wholesale Order', product: 'Double IPA', qty: 15, amount: 3225, channel: 'Wholesale' }
+            ]
         };
+
+        function _monthShort(d) {
+            return d.toLocaleDateString('en-US', { month: 'short' });
+        }
+
+        function _monthLong(d) {
+            return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+        }
+
+        function _parseBookingDate(s) {
+            if (!s) return null;
+            const t = Date.parse(s);
+            return isNaN(t) ? null : new Date(t);
+        }
+
+        function _bookingAmount(b) {
+            const dep = parseFloat(b.deposit) || 0;
+            const toPay = parseFloat(b.amountToPay);
+            if (Number.isFinite(toPay)) return Math.max(0, dep + toPay);
+            return 500;
+        }
+
+        function _channelFromType(type) {
+            if (type === 'Corporate') return { label: 'Wholesale', cls: 'badge-blue' };
+            if (type === 'Public Event') return { label: 'Taproom', cls: 'badge-green' };
+            if (type === 'Rental') return { label: 'Retail', cls: 'badge-orange' };
+            return { label: 'Events', cls: 'badge-purple' };
+        }
+
+        function _formatMoney(n) {
+            return '$' + (n || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+        }
+
+        function _buildRealReportData() {
+            const d = TL_getData();
+            const bookings = (d.bookings || []).filter(b => !b._demo);
+            const batches = (d.batches || []).filter(b => !b._demo);
+            const now = new Date();
+
+            const styleVolumes = {};
+            batches.forEach(b => {
+                const key = b.style || b.name || 'Other';
+                styleVolumes[key] = (styleVolumes[key] || 0) + (parseFloat(b.volume) || 0);
+            });
+            const bestStyle = Object.entries(styleVolumes).sort((a, b) => b[1] - a[1])[0]?.[0] || '—';
+
+            const transactions = bookings
+                .map(b => {
+                    const dt = _parseBookingDate(b.date);
+                    if (!dt) return null;
+                    const ch = _channelFromType(b.type);
+                    const amount = _bookingAmount(b);
+                    return {
+                        dateObj: dt,
+                        date: dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                        description: ch.label === 'Wholesale' ? 'Wholesale Order' : (ch.label === 'Taproom' ? 'Taproom Sales' : (ch.label === 'Retail' ? 'Retail Keg Sale' : 'Event Pour')),
+                        product: bestStyle !== '—' ? bestStyle : (b.type || 'Booking'),
+                        qty: Math.max(1, Math.round((parseInt(b.guests, 10) || 0) / 8)),
+                        amount,
+                        channel: ch.label,
+                        channelClass: ch.cls
+                    };
+                })
+                .filter(Boolean)
+                .sort((a, b) => b.dateObj - a.dateObj);
+
+            const monthlyKeys = [];
+            const monthlyLabels = [];
+            for (let i = 11; i >= 0; i -= 1) {
+                const dt = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                monthlyKeys.push(dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0'));
+                monthlyLabels.push(_monthShort(dt));
+            }
+
+            const monthlyRevenue = Object.fromEntries(monthlyKeys.map(k => [k, 0]));
+            const monthlyUnits = Object.fromEntries(monthlyKeys.map(k => [k, 0]));
+            transactions.forEach(t => {
+                const k = t.dateObj.getFullYear() + '-' + String(t.dateObj.getMonth() + 1).padStart(2, '0');
+                if (Object.prototype.hasOwnProperty.call(monthlyRevenue, k)) {
+                    monthlyRevenue[k] += t.amount;
+                    monthlyUnits[k] += t.qty;
+                }
+            });
+
+            const series12 = monthlyKeys.map(k => Math.round(monthlyRevenue[k]));
+            const units12 = monthlyKeys.reduce((sum, k) => sum + monthlyUnits[k], 0);
+            const series7 = series12.slice(-7);
+            const labels7 = monthlyLabels.slice(-7);
+            const units7 = monthlyKeys.slice(-7).reduce((sum, k) => sum + monthlyUnits[k], 0);
+
+            const total7 = series7.reduce((s, n) => s + n, 0);
+            const total12 = series12.reduce((s, n) => s + n, 0);
+            const avgOrder = transactions.length ? Math.round(transactions.reduce((s, t) => s + t.amount, 0) / transactions.length) : 0;
+
+            const productRevenue = {};
+            transactions.forEach(t => { productRevenue[t.product] = (productRevenue[t.product] || 0) + t.amount; });
+            const topProducts = Object.entries(productRevenue).sort((a, b) => b[1] - a[1]).slice(0, 6);
+            while (topProducts.length < 6) topProducts.push(['Other', 0]);
+
+            const latestTx = transactions[0];
+            const latestBadge = latestTx ? _monthLong(latestTx.dateObj) : 'No transactions';
+
+            return {
+                '7': {
+                    labels: labels7,
+                    data: series7,
+                    revenue: _formatMoney(total7),
+                    revenueLabel: 'Revenue (Last 7 Mo)',
+                    units: units7.toLocaleString(),
+                    unitsLabel: 'Units Sold (kegs)',
+                    avgOrder: _formatMoney(avgOrder),
+                    topSeller: bestStyle
+                },
+                '12': {
+                    labels: monthlyLabels,
+                    data: series12,
+                    revenue: _formatMoney(total12),
+                    revenueLabel: 'Revenue (12 Mo)',
+                    units: units12.toLocaleString(),
+                    unitsLabel: 'Units Sold (12 Mo)',
+                    avgOrder: _formatMoney(avgOrder),
+                    topSeller: bestStyle
+                },
+                topProducts: {
+                    labels: topProducts.map(x => x[0]),
+                    data: topProducts.map(x => Math.round(x[1]))
+                },
+                transactions,
+                txBadge: latestBadge
+            };
+        }
+
+        const reportData = TL_isTrialActive() ? DEMO_REPORT_DATA : _buildRealReportData();
 
         function updateRevenueChart(val) {
             const key = val.includes('12') ? '12' : '7';
-            const d = revenueChartData[key];
+            const d = reportData[key];
             window.revenueChart.data.labels = d.labels;
             window.revenueChart.data.datasets[0].data = d.data;
             window.revenueChart.update();
@@ -1054,15 +1206,35 @@
             document.getElementById('statUnits').textContent = d.units;
             document.getElementById('statUnitsLabel').textContent = d.unitsLabel;
             document.getElementById('statAvgOrder').textContent = d.avgOrder;
+            document.getElementById('statTopSeller').textContent = d.topSeller || '—';
+        }
+
+        function renderTransactions(rows) {
+            const tbody = document.getElementById('transactionsBody');
+            if (!tbody) return;
+            if (!rows || !rows.length) {
+                tbody.innerHTML = '<tr><td colspan="6" style="color:var(--txt2);text-align:center;">No transactions available yet.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = rows.slice(0, 8).map(r => `
+                <tr>
+                    <td>${r.date}</td>
+                    <td>${r.description}</td>
+                    <td>${r.product}</td>
+                    <td>${r.qty}</td>
+                    <td class="amount">${_formatMoney(r.amount)}</td>
+                    <td><span class="badge ${r.channelClass || (r.channel === 'Taproom' ? 'badge-green' : (r.channel === 'Retail' ? 'badge-orange' : (r.channel === 'Events' ? 'badge-purple' : 'badge-blue')))}">${r.channel}</span></td>
+                </tr>
+            `).join('');
         }
 
         window.revenueChart = new Chart(document.getElementById('revenueChart').getContext('2d'), {
             type: 'line',
             data: {
-                labels: ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'],
+                labels: reportData['7'].labels,
                 datasets: [{
                     label: 'Revenue',
-                    data: [12400, 13800, 15200, 17900, 21300, 19100, 18430],
+                    data: reportData['7'].data,
                     borderColor: '#9333ea',
                     backgroundColor: 'rgba(147,51,234,0.1)',
                     borderWidth: 2.5,
@@ -1092,14 +1264,13 @@
             }
         });
 
-        // Top Products Bar Chart
-        new Chart(document.getElementById('productChart').getContext('2d'), {
+        window.productChart = new Chart(document.getElementById('productChart').getContext('2d'), {
             type: 'bar',
             data: {
-                labels: ['W.C. IPA', 'Amber Ale', 'Stout', 'W. Lager', 'Pale Ale', 'Other'],
+                labels: reportData.topProducts.labels,
                 datasets: [{
                     label: 'Revenue ($)',
-                    data: [6200, 3800, 3100, 2450, 1900, 980],
+                    data: reportData.topProducts.data,
                     backgroundColor: [
                         'rgba(147,51,234,0.75)',
                         'rgba(99,102,241,0.75)',
@@ -1128,6 +1299,10 @@
                 }
             }
         });
+
+        document.getElementById('txMonthBadge').textContent = reportData.txBadge || 'February 2026';
+        renderTransactions(reportData.transactions || []);
+        updateRevenueChart('Last 7 Months');
     </script>
     <!-- Delete Account Modal -->
     <div class="modal-overlay" id="deleteAccountModal"
@@ -1194,4 +1369,8 @@
 </body>
 
 </html>
+
+
+
+
 
