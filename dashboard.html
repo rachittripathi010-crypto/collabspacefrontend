@@ -1241,11 +1241,10 @@
             </div>
 
             <!-- Low-stock alert -->
-            <div class="alert-banner" id="alertBanner">
+            <div class="alert-banner" id="alertBanner" style="display:none;">
                 <span class="alert-icon">⚠️</span>
-                <div class="alert-text">
-                    <strong>Low Stock Alert:</strong> Cascade Hops (12 lbs remaining) — reorder recommended before
-                    Friday.
+                <div class="alert-text" id="alertBannerText">
+                    <strong>Low Stock Alert:</strong> <span id="alertItemName"></span> — reorder recommended.
                 </div>
                 <button class="alert-close" onclick="this.closest('.alert-banner').remove()">×</button>
             </div>
@@ -1254,27 +1253,27 @@
             <div class="stats-row">
                 <div class="stat-card">
                     <div class="stat-icon purple">📦</div>
-                    <div class="stat-value">1,284</div>
+                    <div class="stat-value" id="stat-total-stock">0</div>
                     <div class="stat-label">Total Stock Items</div>
-                    <div class="stat-change up">↑ 4.2% this week</div>
+                    <div class="stat-change" id="stat-total-stock-change">&nbsp;</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon blue">🧪</div>
-                    <div class="stat-value">7</div>
+                    <div class="stat-value" id="stat-active-batches">0</div>
                     <div class="stat-label">Active Batches</div>
-                    <div class="stat-change up">↑ 2 new this month</div>
+                    <div class="stat-change" id="stat-active-batches-change">&nbsp;</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon green">📅</div>
-                    <div class="stat-value">34</div>
+                    <div class="stat-value" id="stat-upcoming-bookings">0</div>
                     <div class="stat-label">Upcoming Bookings</div>
-                    <div class="stat-change up">↑ 12% vs last month</div>
+                    <div class="stat-change" id="stat-upcoming-bookings-change">&nbsp;</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon orange">💰</div>
-                    <div class="stat-value">$18,430</div>
+                    <div class="stat-value" id="stat-monthly-revenue">$0</div>
                     <div class="stat-label">Monthly Revenue</div>
-                    <div class="stat-change down">↓ 1.8% vs target</div>
+                    <div class="stat-change" id="stat-monthly-revenue-change">&nbsp;</div>
                 </div>
             </div>
 
@@ -1296,7 +1295,7 @@
                 <div class="panel">
                     <div class="panel-header">
                         <div class="panel-title">Recent Batches</div>
-                        <span class="panel-badge">7 Active</span>
+                        <span class="panel-badge" id="recentBatchesBadge">0 Active</span>
                     </div>
                     <table>
                         <thead>
@@ -1307,52 +1306,8 @@
                                 <th>Est. Ready</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td>
-                                    <div class="batch-name">Batch #48 — West Coast IPA</div>
-                                    <div class="batch-sub">Started Feb 18</div>
-                                </td>
-                                <td>320 gal</td>
-                                <td><span class="badge badge-blue">Fermenting</span></td>
-                                <td>Mar 4</td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="batch-name">Batch #47 — Amber Ale</div>
-                                    <div class="batch-sub">Started Feb 10</div>
-                                </td>
-                                <td>180 gal</td>
-                                <td><span class="badge badge-orange">Conditioning</span></td>
-                                <td>Feb 28</td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="batch-name">Batch #46 — Stout Porter</div>
-                                    <div class="batch-sub">Started Feb 2</div>
-                                </td>
-                                <td>240 gal</td>
-                                <td><span class="badge badge-green">Ready</span></td>
-                                <td>Feb 20 ✓</td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="batch-name">Batch #45 — Wheat Lager</div>
-                                    <div class="batch-sub">Started Jan 28</div>
-                                </td>
-                                <td>200 gal</td>
-                                <td><span class="badge badge-green">Ready</span></td>
-                                <td>Feb 15 ✓</td>
-                            </tr>
-                            <tr>
-                                <td>
-                                    <div class="batch-name">Batch #44 — Pale Ale</div>
-                                    <div class="batch-sub">Started Jan 20</div>
-                                </td>
-                                <td>160 gal</td>
-                                <td><span class="badge badge-red">Low Stock</span></td>
-                                <td>Feb 8 ✓</td>
-                            </tr>
+                        <tbody id="recentBatchesBody">
+                            <!-- Filled dynamically -->
                         </tbody>
                     </table>
                 </div>
@@ -1411,11 +1366,11 @@
     <script>
         // ── TRIAL EXPIRY CHECK ──
         (function () {
-            const trialStart = localStorage.getItem('tl_trial_start');
+            const trialStart = typeof TL_getTrialStart === 'function' ? TL_getTrialStart() : null;
             const banner = document.getElementById('trialBanner');
             if (!trialStart || !banner) return;
             const TWO_DAYS = 2 * 24 * 60 * 60 * 1000;
-            const elapsed = Date.now() - parseInt(trialStart);
+            const elapsed = Date.now() - parseInt(trialStart, 10);
             if (elapsed >= TWO_DAYS) {
                 banner.style.cssText = 'display:flex;align-items:center;gap:12px;font-size:13px;margin-bottom:20px;border-radius:14px;padding:14px 20px;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);';
                 banner.innerHTML = '<span style="font-size:20px">⏰</span><div style="flex:1"><strong style="color:#f87171">Your free trial has expired.</strong> Upgrade to continue using Tamperline.us.</div><a href="#" onclick="openUpgradeModal();return false;" style="background:linear-gradient(135deg,#9333ea,#6366f1);color:#fff;text-decoration:none;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;white-space:nowrap;">Upgrade Now →</a><button onclick="this.parentElement.remove()" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:18px;line-height:1;">×</button>';
@@ -1466,13 +1421,13 @@
 
         // Revenue Trend Chart
         const revenueCtx = document.getElementById('revenueChart').getContext('2d');
-        new Chart(revenueCtx, {
+        const revenueChart = new Chart(revenueCtx, {
             type: 'line',
             data: {
-                labels: ['Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'],
+                labels: [],
                 datasets: [{
                     label: 'Monthly Revenue',
-                    data: [12400, 13800, 15200, 17900, 21300, 19100, 18430],
+                    data: [],
                     borderColor: '#9333ea',
                     backgroundColor: 'rgba(147,51,234,0.1)',
                     borderWidth: 2.5,
@@ -1516,6 +1471,140 @@
                         }
                     }
                 }
+            }
+        });
+
+        function _formatCurrency(amount) {
+            return '$' + Number(amount || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        }
+
+        function _getLastNMonths(count) {
+            const now = new Date();
+            const months = [];
+            const base = new Date(now.getFullYear(), now.getMonth(), 1);
+            for (let i = count - 1; i >= 0; i--) {
+                const d = new Date(base.getFullYear(), base.getMonth() - i, 1);
+                months.push({
+                    label: d.toLocaleDateString('en-US', { month: 'short' }),
+                    start: new Date(d),
+                    end: new Date(d.getFullYear(), d.getMonth() + 1, 1),
+                    value: 0
+                });
+            }
+            return months;
+        }
+
+        function _badgeForBatchStatus(status) {
+            const s = (status || '').toLowerCase();
+            if (s === 'fermenting') return '<span class="badge badge-blue">Fermenting</span>';
+            if (s === 'conditioning') return '<span class="badge badge-orange">Conditioning</span>';
+            if (s === 'ready') return '<span class="badge badge-green">Ready</span>';
+            if (s === 'low-stock' || s === 'low stock' || s === 'low') return '<span class="badge badge-red">Low Stock</span>';
+            return `<span class="badge badge-blue">${status || 'Unknown'}</span>`;
+        }
+
+        function renderRecentBatches(batches) {
+            const badge = document.getElementById('recentBatchesBadge');
+            const tbody = document.getElementById('recentBatchesBody');
+            if (!tbody || !badge) return;
+
+            const sorted = Array.isArray(batches) ? [...batches].sort((a, b) => new Date(b.started) - new Date(a.started)) : [];
+            const activeCount = sorted.filter(b => !['ready', 'complete'].includes((b.status || '').toLowerCase())).length;
+            badge.textContent = `${activeCount} Active`;
+
+            if (!sorted.length) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--txt3);font-size:14px;">No batches yet.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = sorted.slice(0, 5).map(b => {
+                const started = new Date(b.started);
+                const startedLabel = isNaN(started) ? (b.started || '—') : started.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const readyLabel = b.estReady || '—';
+                return `<tr>
+                    <td>
+                        <div class="batch-name">${b.name || 'Untitled'}</div>
+                        <div class="batch-sub">Started ${startedLabel}</div>
+                    </td>
+                    <td>${b.volume || '—'} gal</td>
+                    <td>${_badgeForBatchStatus(b.status)}</td>
+                    <td>${readyLabel}${(b.status || '').toLowerCase() === 'ready' ? ' ✓' : ''}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function updateDashboard() {
+            const d = TL_getData();
+            const inventory = Array.isArray(d.inventory) ? d.inventory : [];
+            const batches = Array.isArray(d.batches) ? d.batches : [];
+            const bookings = Array.isArray(d.bookings) ? d.bookings : [];
+
+            const totalStockQty = inventory.reduce((sum, i) => sum + (Number(i.qty) || 0), 0);
+            const activeBatches = batches.filter(b => !['ready', 'complete'].includes((b.status || '').toLowerCase())).length;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const upcomingBookings = bookings.filter(b => {
+                const d = new Date(b.date);
+                return !isNaN(d) && d >= today;
+            }).length;
+
+            const monthBuckets = _getLastNMonths(7);
+            bookings.forEach(b => {
+                const d = new Date(b.date);
+                if (isNaN(d)) return;
+                const deposit = Number(b.deposit) || 0;
+                for (const m of monthBuckets) {
+                    if (d >= m.start && d < m.end) {
+                        m.value += deposit;
+                        break;
+                    }
+                }
+            });
+
+            const currentMonthRevenue = monthBuckets.length ? monthBuckets[monthBuckets.length - 1].value : 0;
+
+            const statTotal = document.getElementById('stat-total-stock');
+            const statBatches = document.getElementById('stat-active-batches');
+            const statBookings = document.getElementById('stat-upcoming-bookings');
+            const statRevenue = document.getElementById('stat-monthly-revenue');
+
+            if (statTotal) statTotal.textContent = totalStockQty.toLocaleString();
+            if (statBatches) statBatches.textContent = activeBatches.toLocaleString();
+            if (statBookings) statBookings.textContent = upcomingBookings.toLocaleString();
+            if (statRevenue) statRevenue.textContent = _formatCurrency(currentMonthRevenue);
+
+            // Low stock alert
+            const low = inventory.find(i => (typeof i.qty === 'number' && typeof i.reorder === 'number' && i.qty <= i.reorder) || i.status === 'low');
+            const banner = document.getElementById('alertBanner');
+            if (banner) {
+                if (low) {
+                    banner.style.display = 'flex';
+                    const nameEl = document.getElementById('alertItemName');
+                    if (nameEl) {
+                        const qty = Number(low.qty) || 0;
+                        const unit = low.unit ? ` ${low.unit}` : '';
+                        nameEl.textContent = `${low.name} (${qty.toLocaleString()}${unit} remaining)`;
+                    }
+                } else {
+                    banner.style.display = 'none';
+                }
+            }
+
+            renderRecentBatches(batches);
+
+            if (revenueChart) {
+                revenueChart.data.labels = monthBuckets.map(m => m.label);
+                revenueChart.data.datasets[0].data = monthBuckets.map(m => m.value);
+                revenueChart.update();
+            }
+        }
+
+        // Keep dashboard stats in sync with user data
+        updateDashboard();
+        window.addEventListener('storage', function (e) {
+            if (e.key && e.key.startsWith('tl_data_')) {
+                updateDashboard();
             }
         });
 
@@ -1703,3 +1792,5 @@
 </body>
 
 </html>
+
+

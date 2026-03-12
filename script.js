@@ -338,10 +338,10 @@ function handleAuth(e, type) {
   localStorage.setItem('tl_user_' + regEmail, JSON.stringify(newUser));
   localStorage.setItem('tl_current_user', regEmail);
 
-  // Start 2-day free trial if not already running
-  if (!localStorage.getItem('tl_trial_start')) {
-    localStorage.setItem('tl_trial_start', Date.now().toString());
-    localStorage.setItem('tl_trial_email', regEmail);
+  // Start 2-day free trial for this account if not already running
+  const trialKey = 'tl_trial_start_' + regEmail;
+  if (!localStorage.getItem(trialKey)) {
+    localStorage.setItem(trialKey, Date.now().toString());
   }
 
   const loginForm = document.getElementById('form-login');

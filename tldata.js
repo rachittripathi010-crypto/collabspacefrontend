@@ -50,6 +50,27 @@ function TL_getCurrentUser() {
     return localStorage.getItem('tl_current_user') || null;
 }
 
+function TL_getTrialStart(email) {
+    const userEmail = email || TL_getCurrentUser();
+    if (!userEmail) return null;
+
+    const userKey = 'tl_trial_start_' + userEmail;
+    const userStart = localStorage.getItem(userKey);
+    if (userStart) return userStart;
+
+    // Legacy compatibility: migrate old global trial key for matching account.
+    const legacyEmail = localStorage.getItem('tl_trial_email');
+    const legacyStart = localStorage.getItem('tl_trial_start');
+    if (legacyStart && legacyEmail && legacyEmail === userEmail) {
+        localStorage.setItem(userKey, legacyStart);
+        localStorage.removeItem('tl_trial_start');
+        localStorage.removeItem('tl_trial_email');
+        return legacyStart;
+    }
+
+    return null;
+}
+
 function TL_getDataKey() {
     const u = TL_getCurrentUser();
     return u ? 'tl_data_' + u : null;
@@ -68,7 +89,7 @@ function _TL_defaults() {
 
 /* ── Trial status ── */
 function TL_isTrialActive() {
-    const start = localStorage.getItem('tl_trial_start');
+    const start = TL_getTrialStart();
     if (!start) return false;
     const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
     return (Date.now() - parseInt(start, 10)) < TWO_DAYS_MS;
@@ -195,11 +216,12 @@ function TL_exportData() {
 function TL_deleteAccount(email) {
     localStorage.removeItem('tl_user_' + email);
     localStorage.removeItem('tl_data_' + email);
+    localStorage.removeItem('tl_trial_start_' + email);
     // Clear session keys
     if (localStorage.getItem('tl_current_user') === email) {
         localStorage.removeItem('tl_current_user');
     }
-    // Clear trial keys if they belong to this user
+    // Clear legacy trial keys if they belong to this user
     if (localStorage.getItem('tl_trial_email') === email) {
         localStorage.removeItem('tl_trial_start');
         localStorage.removeItem('tl_trial_email');

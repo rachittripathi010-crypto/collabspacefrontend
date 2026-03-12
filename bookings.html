@@ -961,7 +961,7 @@
         <header class="topbar">
             <div>
                 <div class="topbar-title">Bookings &amp; Events</div>
-                <div class="topbar-sub">34 upcoming · Next: Friday Tasting Tour, Feb 27</div>
+                <div class="topbar-sub" id="topbar-sub">0 upcoming</div>
             </div>
             <div class="topbar-right">
                 <!-- Notification Bell -->
@@ -1075,22 +1075,22 @@
             <div class="stats-row">
                 <div class="stat-card">
                     <div class="stat-icon purple">📅</div>
-                    <div class="stat-value">34</div>
+                    <div class="stat-value" id="stat-upcoming">0</div>
                     <div class="stat-label">Upcoming Events</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon green">✅</div>
-                    <div class="stat-value">28</div>
+                    <div class="stat-value" id="stat-confirmed">0</div>
                     <div class="stat-label">Confirmed</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon orange">⏳</div>
-                    <div class="stat-value">6</div>
+                    <div class="stat-value" id="stat-pending">0</div>
                     <div class="stat-label">Pending</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon blue">💰</div>
-                    <div class="stat-value">$2,000</div>
+                    <div class="stat-value" id="stat-deposits">$0.00</div>
                     <div class="stat-label">Deposits Collected</div>
                 </div>
             </div>
@@ -1396,6 +1396,34 @@
             'Other': '<span class="badge" style="background:rgba(100,116,139,0.2);color:var(--txt2);">Other</span>'
         };
 
+        function updateBookingStats() {
+            const total = bookingsData.length;
+            const confirmed = bookingsData.filter(b => b.status === 'confirmed').length;
+            const pending = bookingsData.filter(b => b.status === 'pending').length;
+            const deposits = bookingsData.reduce((sum, b) => sum + (parseFloat(b.deposit) || 0), 0);
+
+            document.getElementById('stat-upcoming').textContent = total.toLocaleString();
+            document.getElementById('stat-confirmed').textContent = confirmed.toLocaleString();
+            document.getElementById('stat-pending').textContent = pending.toLocaleString();
+            document.getElementById('stat-deposits').textContent = '$' + deposits.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            const next = getNextBooking();
+            const nextText = next ? ` · Next: ${next.name}, ${next.date}` : '';
+            document.getElementById('topbar-sub').textContent = `${total.toLocaleString()} upcoming${nextText}`;
+        }
+
+        function getNextBooking() {
+            const now = new Date();
+            const candidates = bookingsData
+                .map(b => {
+                    const dt = Date.parse(b.date);
+                    return { ...b, _date: isNaN(dt) ? null : dt };
+                })
+                .filter(b => b._date && b._date >= now.getTime())
+                .sort((a, b) => a._date - b._date);
+            return candidates[0] || null;
+        }
+
         function renderBookingTable(data) {
             data = data || bookingsData;
             document.getElementById('bookingCount').textContent = data.length + ' booking' + (data.length !== 1 ? 's' : '');
@@ -1422,6 +1450,7 @@
                     </td>
                 </tr>
             `).join('');
+            updateBookingStats();
         }
 
         function filterBookings() {
@@ -1559,7 +1588,85 @@
         TL_checkDeliveryReminders();
         TL_initUI();
         renderBookingTable();
+
+        // Delete account modal (profile dropdown)
+        function openDeleteAccountModal() {
+            const m = document.getElementById('deleteAccountModal');
+            if (!m) return;
+            m.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            document.getElementById('del-email').value = '';
+            document.getElementById('del-pass').value = '';
+            document.getElementById('del-error').style.display = 'none';
+            const cu = TL_getCurrentUser();
+            if (cu) document.getElementById('del-email').value = cu;
+        }
+        function closeDeleteAccountModal() {
+            const m = document.getElementById('deleteAccountModal');
+            if (!m) return;
+            m.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+        function confirmDeleteAccount() {
+            const email = document.getElementById('del-email').value.trim().toLowerCase();
+            const pass = document.getElementById('del-pass').value;
+            const errEl = document.getElementById('del-error');
+            errEl.style.display = 'none';
+            if (!email || !pass) { errEl.textContent = 'Please enter your email and password.'; errEl.style.display = 'block'; return; }
+            const raw = localStorage.getItem('tl_user_' + email);
+            if (!raw) { errEl.textContent = '✗ No account found with this email.'; errEl.style.display = 'block'; return; }
+            const user = JSON.parse(raw);
+            if (user.password !== pass) { errEl.textContent = '✗ Incorrect password. Please try again.'; errEl.style.display = 'block'; return; }
+            TL_deleteAccount(email);
+        }
     </script>
+
+    <!-- Delete Account Modal -->
+    <div id="deleteAccountModal"
+        style="display:none;position:fixed;inset:0;z-index:4000;background:rgba(0,0,0,0.78);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;"
+        onclick="if(event.target===this)closeDeleteAccountModal()">
+        <div
+            style="background:#13132a;border:1px solid rgba(248,113,113,0.35);border-radius:18px;padding:32px;width:100%;max-width:420px;position:relative;">
+            <button onclick="closeDeleteAccountModal()"
+                style="position:absolute;top:14px;right:16px;background:none;border:none;color:#94a3b8;font-size:22px;cursor:pointer;">×</button>
+            <div style="text-align:center;margin-bottom:20px;">
+                <div style="font-size:36px;margin-bottom:10px;">🗑️</div>
+                <h2 style="font-size:18px;font-weight:800;color:#f87171;margin-bottom:6px;">Delete Account</h2>
+                <p style="font-size:13px;color:#94a3b8;line-height:1.5;">This action is <strong
+                        style="color:#f87171;">permanent and irreversible</strong>. All your data will be permanently
+                    deleted.</p>
+            </div>
+            <div style="margin-bottom:12px;">
+                <label
+                    style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Your
+                    Email (Username)</label>
+                <input id="del-email" type="email" placeholder="you@brewery.com"
+                    style="width:100%;background:#0d0d18;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:#f1f5f9;font-family:inherit;font-size:13px;">
+            </div>
+            <div style="margin-bottom:6px;">
+                <label
+                    style="font-size:11px;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Your
+                    Password</label>
+                <input id="del-pass" type="password" placeholder="Enter your password"
+                    style="width:100%;background:#0d0d18;border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 14px;color:#f1f5f9;font-family:inherit;font-size:13px;">
+            </div>
+            <div style="margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+                <input type="checkbox" id="del-show-pw"
+                    onchange="document.getElementById('del-pass').type=this.checked?'text':'password'">
+                <label for="del-show-pw" style="font-size:12px;color:#64748b;cursor:pointer;">Show password</label>
+            </div>
+            <p id="del-error" style="display:none;color:#f87171;font-size:12px;margin-bottom:10px;text-align:center;">
+            </p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <button onclick="closeDeleteAccountModal()"
+                    style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:11px;font-family:inherit;font-size:14px;font-weight:600;color:#94a3b8;cursor:pointer;">Cancel</button>
+                <button onclick="confirmDeleteAccount()"
+                    style="background:linear-gradient(135deg,#ef4444,#dc2626);border:none;border-radius:8px;padding:11px;font-family:inherit;font-size:14px;font-weight:600;color:#fff;cursor:pointer;">Yes,
+                    Delete</button>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
+

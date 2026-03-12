@@ -1156,7 +1156,7 @@
             </div>
 
             <!-- Change Password Card -->
-            <div class="settings-card">
+            <div id="changePasswordCard" class="settings-card">
                 <div class="settings-card-title">Change Password</div>
                 <div class="settings-card-sub">Update your account password. You'll need your current password to
                     confirm.</div>
@@ -1421,6 +1421,8 @@
             document.querySelectorAll('[id^="pane-"]').forEach(p => p.style.display = 'none');
             document.querySelector('[data-tab="' + tab + '"]').classList.add('active');
             document.getElementById('pane-' + tab).style.display = '';
+            const cp = document.getElementById('changePasswordCard');
+            if (cp) cp.style.display = (tab === 'profile' ? '' : 'none');
         }
 
         function toggleSwitch(el) {
@@ -1581,3 +1583,4 @@
 </body>
 
 </html>
+
