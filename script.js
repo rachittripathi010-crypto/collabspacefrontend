@@ -73,17 +73,40 @@ function openAuthModal(tab) {
   const modal = document.getElementById("authModal");
   modal.classList.add("auth-modal-open");
   document.body.style.overflow = "hidden";
-  switchTab(tab || "login");
-  // Reset success message
+  
+  // Reset to clean state
   document.getElementById("auth-success").style.display = "none";
   document.getElementById("form-login").style.display = "";
   document.getElementById("form-signup").style.display = "";
+  document.querySelector('.auth-tabs').style.display = '';
+  document.getElementById('signup-otp-panel').style.display = 'none';
+  
+  // Reset OTP state
+  _signupOTPClearTimer();
+  _signupOTP = null;
+  _signupOTPEmail = null;
+  _signupOTPExpiry = null;
+  _signupFormData = null;
+  
+  switchTab(tab || "login");
 }
 
 function closeAuthModal() {
   const modal = document.getElementById("authModal");
   modal.classList.remove("auth-modal-open");
   document.body.style.overflow = "auto";
+  
+  // Clean up OTP state when closing modal
+  _signupOTPClearTimer();
+  _signupOTP = null;
+  _signupOTPEmail = null;
+  _signupOTPExpiry = null;
+  _signupFormData = null;
+  
+  // Reset OTP panel
+  document.getElementById('signup-otp-panel').style.display = 'none';
+  document.querySelector('.auth-tabs').style.display = '';
+  document.getElementById('form-signup').style.display = '';
 }
 
 /* ── Show / Hide password toggle ── */
@@ -327,34 +350,46 @@ function handleAuth(e, type) {
     if (!fnameOk || !lnameOk || !bizOk || !emailOk || !passOk) return;
   }
 
-  // Collect signup data and save to localStorage
+  // Collect signup data
   const regEmail = document.getElementById('signup-email').value.trim().toLowerCase();
   const regFirst = document.getElementById('signup-fname').value.trim();
   const regLast = document.getElementById('signup-lname').value.trim();
   const regBiz = document.getElementById('signup-business').value.trim();
   const regPass = document.getElementById('signup-password').value;
 
-  const newUser = { firstName: regFirst, lastName: regLast, business: regBiz, email: regEmail, password: regPass, createdAt: Date.now() };
-  localStorage.setItem('tl_user_' + regEmail, JSON.stringify(newUser));
-  localStorage.setItem('tl_current_user', regEmail);
-
-  // Start 2-day free trial for this account if not already running
-  const trialKey = 'tl_trial_start_' + regEmail;
-  if (!localStorage.getItem(trialKey)) {
-    localStorage.setItem(trialKey, Date.now().toString());
+  // Check if email already exists (prevent duplicate registrations)
+  if (localStorage.getItem('tl_user_' + regEmail)) {
+    const emailMsg = document.getElementById('msg-email');
+    if (emailMsg) {
+      emailMsg.textContent = '✗ An account with this email already exists. Please sign in or use a different email.';
+      emailMsg.className = 'field-msg invalid';
+    }
+    document.getElementById('signup-email').classList.add('input-invalid');
+    document.getElementById('signup-email').focus();
+    return;
   }
 
-  const loginForm = document.getElementById('form-login');
-  const signupForm = document.getElementById('form-signup');
-  const successBox = document.getElementById('auth-success');
-  const successText = document.getElementById('auth-success-text');
+  // Store form data for after OTP verification
+  _signupFormData = {
+    email: regEmail,
+    firstName: regFirst,
+    lastName: regLast,
+    business: regBiz,
+    password: regPass
+  };
 
-  loginForm.style.display = 'none';
-  signupForm.style.display = 'none';
-  successBox.style.display = 'flex';
+  // Generate OTP and set expiry
+  _signupOTP = generateOTP();
+  _signupOTPEmail = regEmail;
+  _signupOTPExpiry = Date.now() + 5 * 60 * 1000; // 5 minutes
 
-  successText.textContent = `🎉 Account created, ${regFirst}! Your 2-day free trial has started. Redirecting to your dashboard...`;
-  setTimeout(() => { window.location.href = 'dashboard.html'; }, 2000);
+  // Hide signup form and show OTP panel
+  document.getElementById('form-signup').style.display = 'none';
+  document.querySelector('.auth-tabs').style.display = 'none';
+  document.getElementById('signup-otp-panel').style.display = 'block';
+
+  // Send OTP email
+  signupSendOTP(regEmail, regFirst);
 }
 
 /* Close modal on backdrop click */
@@ -594,6 +629,207 @@ document.addEventListener('DOMContentLoaded', () => {
     forgotLink.addEventListener('click', e => { e.preventDefault(); showForgotPassword(); });
   }
 });
+
+/* ============================================
+   SIGNUP OTP VERIFICATION (Email Verification)
+   ============================================ */
+
+/* In-memory OTP session for signup (never written to disk) */
+let _signupOTP = null;          // 6-digit string
+let _signupOTPEmail = null;     // email address
+let _signupOTPExpiry = null;    // Date.now() + 5min
+let _signupOTPTimerIv = null;   // setInterval ref
+let _signupFormData = null;     // Stores first/last name, business, password for after OTP verification
+
+/* ── Generate random 6-digit OTP ── */
+function generateOTP() {
+  return String(Math.floor(100000 + Math.random() * 900000));
+}
+
+/* ── Send OTP via EmailJS ── */
+function signupSendOTP(email, firstName) {
+  const status = document.getElementById('signup-otp-status');
+  status.innerHTML = '<span style="color:#9333ea;">📧 Sending verification code…</span>';
+
+  // Get EmailJS config from global variables (defined in index.html)
+  const pubKey = window.SIGNUP_EMAILJS_PUBLIC_KEY || '';
+  const serviceId = window.SIGNUP_EMAILJS_SERVICE_ID || '';
+  const templateId = window.SIGNUP_EMAILJS_TEMPLATE_ID || '';
+
+  // Check if configuration is complete
+  if (!pubKey || pubKey === 'YOUR_PUBLIC_KEY_HERE' || 
+      !serviceId || serviceId === 'YOUR_SERVICE_ID_HERE' ||
+      !templateId || templateId === 'YOUR_TEMPLATE_ID_HERE') {
+    // Configuration incomplete — show OTP in dev mode
+    status.innerHTML =
+      '<span style="color:#f59e0b;">⚠️ Email not configured yet.<br>' +
+      'Your OTP (dev mode): <strong style="letter-spacing:0.2em;">' + _signupOTP + '</strong></span>';
+    setTimeout(() => _signupOTPGoToStep2(), 2000);
+    return;
+  }
+
+  // Initialize EmailJS and send OTP
+  const ejs = window.emailjs;
+  try { ejs.init(pubKey); } catch (e) { }
+
+  ejs.send(serviceId, templateId, {
+    to_email: email,
+    first_name: firstName,
+    otp_code: _signupOTP
+  }).then(() => {
+    status.innerHTML = '<span style="color:#10b981;">✅ Code sent! Check your inbox.</span>';
+    setTimeout(() => _signupOTPGoToStep2(), 900);
+  }).catch((err) => {
+    // If send fails but email is configured, show warning
+    if (pubKey !== 'YOUR_PUBLIC_KEY_HERE') {
+      status.innerHTML =
+        '<span style="color:#f87171;">❌ Failed to send email. Please check your EmailJS configuration.<br>' +
+        '<small>Hint: Verify your Service ID and Template ID in index.html</small></span>';
+      // Don't proceed in case of real failure
+      return;
+    }
+  });
+}
+
+/* ── Show OTP verification step ── */
+function _signupOTPGoToStep2() {
+  document.getElementById('signup-otp-sub').textContent =
+    'A 6-digit code has been sent to ' + _signupOTPEmail + '. Check your inbox (and spam).';
+  document.getElementById('signup-otp').value = '';
+  document.getElementById('signup-otp-msg').textContent = '';
+  document.getElementById('signup-otp-panel').style.display = 'block';
+  document.getElementById('form-signup').style.display = 'none';
+  document.querySelector('.auth-tabs').style.display = 'none';
+  _signupOTPStartTimer();
+}
+
+/* ── OTP Countdown timer (5 min) ── */
+function _signupOTPStartTimer() {
+  _signupOTPClearTimer();
+  function tick() {
+    const left = Math.max(0, _signupOTPExpiry - Date.now());
+    const m = Math.floor(left / 60000);
+    const s = Math.floor((left % 60000) / 1000);
+    const timerEl = document.getElementById('signup-otp-timer');
+    if (timerEl) timerEl.textContent = m + ':' + String(s).padStart(2, '0');
+    if (left === 0) {
+      _signupOTPClearTimer();
+      const otpMsg = document.getElementById('signup-otp-msg');
+      if (otpMsg) { otpMsg.textContent = '✗ Code expired. Please try again.'; otpMsg.className = 'field-msg invalid'; }
+      _signupOTP = null;
+    }
+  }
+  tick();
+  _signupOTPTimerIv = setInterval(tick, 1000);
+}
+
+function _signupOTPClearTimer() {
+  if (_signupOTPTimerIv) { clearInterval(_signupOTPTimerIv); _signupOTPTimerIv = null; }
+}
+
+/* ── Resend OTP ── */
+function signupResendOTP() {
+  _signupOTPClearTimer();
+  _signupOTP = generateOTP();
+  _signupOTPExpiry = Date.now() + 5 * 60 * 1000; // 5 minutes
+  signupSendOTP(_signupOTPEmail, _signupFormData.firstName);
+}
+
+/* ── Go back to signup form ── */
+function signupBackToForm() {
+  _signupOTPClearTimer();
+  _signupOTP = null;
+  _signupOTPEmail = null;
+  _signupOTPExpiry = null;
+  _signupFormData = null;
+
+  document.getElementById('signup-otp-panel').style.display = 'none';
+  document.querySelector('.auth-tabs').style.display = '';
+  document.getElementById('form-signup').style.display = '';
+  
+  // Clear OTP panel
+  document.getElementById('signup-otp').value = '';
+  document.getElementById('signup-otp-msg').textContent = '';
+  document.getElementById('signup-otp-status').textContent = '';
+  
+  // Focus back on email field for user to correct if needed
+  setTimeout(() => {
+    document.getElementById('signup-email').focus();
+  }, 100);
+}
+
+/* ── Verify OTP and create account ── */
+function signupVerifyOTP() {
+  const entered = document.getElementById('signup-otp').value.trim();
+  const msg = document.getElementById('signup-otp-msg');
+  const status = document.getElementById('signup-otp-status');
+
+  msg.textContent = '';
+  status.textContent = '';
+
+  if (!entered || entered.length !== 6) {
+    msg.textContent = '✗ Please enter the 6-digit code.';
+    msg.className = 'field-msg invalid'; 
+    return;
+  }
+  if (!_signupOTP || Date.now() > _signupOTPExpiry) {
+    msg.textContent = '✗ Code has expired. Please try again.';
+    msg.className = 'field-msg invalid'; 
+    status.innerHTML = '<span style="color:#f87171;">Your code has expired. Click "Resend" to get a new one.</span>';
+    return;
+  }
+  if (entered !== _signupOTP) {
+    msg.textContent = '✗ Incorrect code. Please try again.';
+    msg.className = 'field-msg invalid';
+    document.getElementById('signup-otp').classList.add('input-invalid');
+    return;
+  }
+
+  // ✅ OTP verified — now create account with stored form data
+  _signupOTPClearTimer();
+  _signupOTP = null; // consume it — cannot reuse
+
+  // Create the account with the stored form data
+  const regEmail = _signupFormData.email;
+  const regFirst = _signupFormData.firstName;
+  const regLast = _signupFormData.lastName;
+  const regBiz = _signupFormData.business;
+  const regPass = _signupFormData.password;
+
+  const newUser = { 
+    firstName: regFirst, 
+    lastName: regLast, 
+    business: regBiz, 
+    email: regEmail, 
+    password: regPass, 
+    createdAt: Date.now(),
+    emailVerified: true,
+    emailVerifiedAt: Date.now()
+  };
+  localStorage.setItem('tl_user_' + regEmail, JSON.stringify(newUser));
+  localStorage.setItem('tl_current_user', regEmail);
+
+  // Start 2-day free trial
+  const trialKey = 'tl_trial_start_' + regEmail;
+  if (!localStorage.getItem(trialKey)) {
+    localStorage.setItem(trialKey, Date.now().toString());
+  }
+
+  // Show success and redirect
+  status.innerHTML = '<span style="color:#10b981;">✅ Email verified! Creating your account...</span>';
+  
+  setTimeout(() => {
+    document.getElementById('signup-otp-panel').style.display = 'none';
+    document.querySelector('.auth-tabs').style.display = '';
+    
+    const successBox = document.getElementById('auth-success');
+    const successText = document.getElementById('auth-success-text');
+    successBox.style.display = 'flex';
+    successText.textContent = `🎉 Account created, ${regFirst}! Your 2-day free trial has started. Redirecting to your dashboard...`;
+    
+    setTimeout(() => { window.location.href = 'dashboard.html'; }, 2000);
+  }, 1500);
+}
 
 /* ============================================
    DEMO VIDEO MODAL

@@ -116,6 +116,30 @@
         <p id="auth-success-text">Welcome back. Redirecting to your dashboard...</p>
       </div>
 
+      <!-- ===== SIGNUP OTP VERIFICATION PANEL ===== -->
+      <div id="signup-otp-panel" style="display:none;">
+        <div class="auth-brand">
+          <div class="logo-box" style="margin:0 auto 12px;width:48px;height:48px;font-size:18px;">📧</div>
+          <h2 class="auth-title">Verify Your Email</h2>
+          <p class="auth-sub" id="signup-otp-sub">A 6-digit code has been sent to your email.</p>
+        </div>
+        <div id="signup-otp-countdown"
+          style="text-align:center;font-size:12px;color:var(--accent,#9333ea);font-weight:600;margin-bottom:14px;">
+          Code expires in <span id="signup-otp-timer">5:00</span>
+        </div>
+        <div class="auth-field">
+          <label for="signup-otp">6-Digit Code</label>
+          <input type="text" id="signup-otp" maxlength="6" placeholder="000000" autocomplete="one-time-code"
+            style="letter-spacing:0.35em;text-align:center;font-size:22px;font-weight:700;">
+          <span class="field-msg" id="signup-otp-msg"></span>
+        </div>
+        <div id="signup-otp-status" style="min-height:28px;font-size:13px;text-align:center;margin-bottom:8px;"></div>
+        <button class="primary-btn auth-submit" onclick="signupVerifyOTP()">Verify & Create Account →</button>
+        <p class="auth-switch"><a href="#" onclick="signupResendOTP();return false;">Didn't receive it? Resend</a> | <a href="#" onclick="signupBackToForm();return false;">← Back</a></p>
+      </div>
+      <!-- ===== / SIGNUP OTP VERIFICATION PANEL ===== -->
+      <!-- ===== / SIGNUP OTP VERIFICATION PANEL ===== -->
+
       <!-- ===== FORGOT PASSWORD PANEL (3 steps) ===== -->
       <div id="fp-panel" style="display:none;">
 
@@ -605,6 +629,49 @@
   </div>
 
   <script src="script.js"></script>
+
+  <!-- ========== EmailJS CONFIGURATION FOR SIGNUP OTP ========== -->
+  <script>
+    /* 
+       EMAIL CONFIGURATION — EmailJS Setup for Signup OTP
+       ====================================================
+       Follow these steps to enable email verification during signup:
+
+       1. Go to https://www.emailjs.com and create a FREE account
+       2. Create EMAIL SERVICE (note the Service ID):
+          - Choose any email provider (Gmail, Outlook, custom SMTP)
+          - Complete the setup wizard
+          - Your Service ID will look like: service_xxx123
+
+       3. Create EMAIL TEMPLATE in the Templates section:
+          - Template Name: Signup OTP Template
+          - "To Email" field: {{to_email}}
+          - "Subject": Email Verification Code — Tamperline.us
+          - "HTML Body" content (copy and paste):
+
+            <p>Hi {{first_name}},</p>
+            <p>Welcome to Tamperline.us! Your verification code is:</p>
+            <p style="text-align:center; font-size: 28px; font-weight: bold; letter-spacing: 0.3em; color: #9333ea;">{{otp_code}}</p>
+            <p>This code expires in 5 minutes.</p>
+            <p>If you didn't request this, please ignore this email.</p>
+            <p>— Tamperline.us Team</p>
+
+          - Copy and paste the Template ID below
+
+       4. Get your PUBLIC KEY from Account → API Keys section (looks like: abc123XYZ...)
+
+       5. Paste your configuration keys below:
+    */
+
+    // YOUR EMAILJS CONFIGURATION — PASTE YOUR KEYS HERE
+    window.SIGNUP_EMAILJS_PUBLIC_KEY = 'j9CZaYKHuzCV3qHkT';        // From: Account → API Keys
+    window.SIGNUP_EMAILJS_SERVICE_ID = 'service_v3jrake';        // From: Email Services tab → Service ID
+    window.SIGNUP_EMAILJS_TEMPLATE_ID = 'template_p5722wk';      // From: Templates tab → Template ID (Signup OTP)
+
+    // IMPORTANT: Replace the placeholder texts above with your actual EmailJS credentials
+    // Get these from https://www.emailjs.com/dashboard
+  </script>
+
 </body>
 
 </html>
