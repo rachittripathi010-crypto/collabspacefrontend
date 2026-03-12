@@ -1111,7 +1111,7 @@
                     <option value="pending">Pending</option>
                     <option value="cancelled">Cancelled</option>
                 </select>
-                <button class="btn-add" onclick="openModal('createBookingModal')">➕ Create Booking</button>
+                <button class="btn-add" onclick="checkTrialAndCreateBooking()">➕ Create Booking</button>
             </div>
 
             <div class="panel">
@@ -1129,6 +1129,7 @@
                             <th>Room / Space</th>
                             <th>Status</th>
                             <th>Deposit</th>
+                            <th>Amount to Pay</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -1182,34 +1183,38 @@
                             <input class="form-input" id="cb-date" type="date" required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Time</label>
-                            <input class="form-input" id="cb-time" type="time">
+                            <label class="form-label">Time *</label>
+                            <input class="form-input" id="cb-time" type="time" required>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label">Expected Guests</label>
-                            <input class="form-input" id="cb-guests" type="number" min="0" placeholder="0">
+                            <label class="form-label">Expected Guests *</label>
+                            <input class="form-input" id="cb-guests" type="number" min="0" placeholder="0" required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Deposit Amount ($)</label>
-                            <input class="form-input" id="cb-deposit" type="number" min="0" placeholder="0">
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Contact Name</label>
-                            <input class="form-input" id="cb-contact" type="text" placeholder="Full name">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Contact Email</label>
-                            <input class="form-input" id="cb-email" type="email" placeholder="email@example.com">
+                            <label class="form-label">Deposit Amount ($) *</label>
+                            <input class="form-input" id="cb-deposit" type="number" min="0" placeholder="0" required>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Notes</label>
+                        <label class="form-label">Amount to be Paid ($) *</label>
+                        <input class="form-input" id="cb-amount-to-pay" type="number" min="0" placeholder="0" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Contact Name *</label>
+                            <input class="form-input" id="cb-contact" type="text" placeholder="Full name" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Contact Email *</label>
+                            <input class="form-input" id="cb-email" type="email" placeholder="email@example.com" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Notes *</label>
                         <textarea class="form-textarea" id="cb-notes"
-                            placeholder="Special requests, setup requirements..."></textarea>
+                            placeholder="Special requests, setup requirements..." required></textarea>
                     </div>
                     <button type="submit" class="btn-submit">📅 Confirm Booking</button>
                 </form>
@@ -1234,6 +1239,101 @@
                     </div>
                 </div>
                 <button class="btn-done" onclick="closeModal('createBookingModal'); renderBookingTable();">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRICING PLANS MODAL -->
+    <div class="modal-overlay" id="pricingModal">
+        <div class="modal" style="width: 600px; padding: 40px;">
+            <button class="modal-close" onclick="closePricingModal()">×</button>
+            <div style="text-align: center; margin-bottom: 32px;">
+                <div style="font-size: 48px; margin-bottom: 16px;">🚀</div>
+                <h2 style="font-size: 22px; font-weight: 800; color: var(--txt); margin-bottom: 8px;">
+                    Upgrade Your Plan to Add More <span id="pricingFeatureName">Items</span>
+                </h2>
+                <p style="font-size: 14px; color: var(--txt2); line-height: 1.6;">
+                    Your trial period allows 1 <span id="pricingFeatureName2">item</span> each for Bookings, Inventory, and Batches. 
+                    Upgrade to a paid plan to unlock unlimited access.
+                </p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+                <div style="background: rgba(147,51,234,0.1); border: 1px solid rgba(147,51,234,0.3); border-radius: 12px; padding: 24px; text-align: center;">
+                    <div style="font-size: 24px; font-weight: 800; color: var(--accent); margin-bottom: 8px;">Barrel Plan</div>
+                    <div style="font-size: 12px; color: var(--txt2); margin-bottom: 16px;">Most Popular</div>
+                    <div style="font-size: 36px; font-weight: 800; color: var(--txt); margin-bottom: 4px;">$29</div>
+                    <div style="font-size: 12px; color: var(--txt2); margin-bottom: 20px;">per month</div>
+                    <div style="text-align: left; font-size: 13px; color: var(--txt2); margin-bottom: 20px; line-height: 1.8;">
+                        ✓ Unlimited bookings<br>
+                        ✓ Unlimited inventory items<br>
+                        ✓ Unlimited batch logs<br>
+                        ✓ Advanced analytics<br>
+                        ✓ Email support
+                    </div>
+                    <button style="width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; border-radius: 8px; padding: 12px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 14px;">
+                        Choose Plan
+                    </button>
+                </div>
+
+                <div style="background: rgba(16,185,129,0.1); border: 2px solid rgba(16,185,129,0.4); border-radius: 12px; padding: 24px; text-align: center; position: relative;">
+                    <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--green); color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 700;">BEST VALUE</div>
+                    <div style="font-size: 24px; font-weight: 800; color: var(--green); margin-bottom: 8px; margin-top: 10px;">Brewmaster Plan</div>
+                    <div style="font-size: 12px; color: var(--txt2); margin-bottom: 16px;">Full Features</div>
+                    <div style="font-size: 36px; font-weight: 800; color: var(--txt); margin-bottom: 4px;">$79</div>
+                    <div style="font-size: 12px; color: var(--txt2); margin-bottom: 20px;">per month</div>
+                    <div style="text-align: left; font-size: 13px; color: var(--txt2); margin-bottom: 20px; line-height: 1.8;">
+                        ✓ Everything in Barrel Plan<br>
+                        ✓ Team access (5 users)<br>
+                        ✓ Advanced reporting<br>
+                        ✓ API access<br>
+                        ✓ Priority support
+                    </div>
+                    <button style="width: 100%; background: linear-gradient(135deg, var(--green), #059669); color: #fff; border: none; border-radius: 8px; padding: 12px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 14px;">
+                        Choose Plan
+                    </button>
+                </div>
+            </div>
+
+            <div style="text-align: center; padding: 16px; background: rgba(255,255,255,0.03); border-radius: 8px; margin-bottom: 20px;">
+                <p style="font-size: 12px; color: var(--txt3); margin-bottom: 8px;">💳 All plans include 7-day free trial</p>
+                <p style="font-size: 12px; color: var(--txt3);">Cancel anytime. No hidden fees.</p>
+            </div>
+
+            <button class="btn-done" onclick="closePricingModal()" style="width: 100%; background: rgba(255,255,255,0.06);">Maybe Later</button>
+        </div>
+    </div>
+
+    <!-- EDIT BOOKING MODAL -->
+    <div class="modal-overlay" id="editBookingModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal('editBookingModal')">×</button>
+            <div id="editBookingForm">
+                <div class="modal-title">✏️ Edit Booking</div>
+                <div class="modal-sub">Update booking status and deposit amount.</div>
+                <form onsubmit="handleEditBooking(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Status *</label>
+                            <select class="form-select" id="eb-status" required>
+                                <option value="">Select status</option>
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Deposit Amount ($)</label>
+                            <input class="form-input" id="eb-deposit" type="number" min="0" placeholder="0">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">💾 Save Changes</button>
+                </form>
+            </div>
+            <div class="modal-success" id="editBookingSuccess">
+                <div class="success-icon">✅</div>
+                <div class="success-title">Booking Updated!</div>
+                <div class="success-msg" id="editBookingSuccessMsg">Your booking has been updated successfully.</div>
+                <button class="btn-done" onclick="closeModal('editBookingModal'); renderBookingTable();">Done</button>
             </div>
         </div>
     </div>
@@ -1427,7 +1527,12 @@
         function renderBookingTable(data) {
             data = data || bookingsData;
             document.getElementById('bookingCount').textContent = data.length + ' booking' + (data.length !== 1 ? 's' : '');
-            document.getElementById('bookingTableBody').innerHTML = data.map(b => `
+            document.getElementById('bookingTableBody').innerHTML = data.map(b => {
+                const estimatedTotal = 500; // Estimated booking total (for demo purposes)
+                const amountToPay = Number.isFinite(parseFloat(b.amountToPay))
+                    ? (parseFloat(b.amountToPay) || 0)
+                    : Math.max(0, estimatedTotal - (b.deposit || 0));
+                return `
                 <tr data-type="${b.type}" data-status="${b.status}">
                     <td>
                         <div class="event-name">${b.name}</div>
@@ -1442,14 +1547,15 @@
                     <td>${b.room}</td>
                     <td>${statusBadge[b.status] || b.status}</td>
                     <td>${b.deposit > 0 ? '$' + b.deposit.toLocaleString() : '—'}</td>
+                    <td><span style="color:var(--txt);font-weight:600;">$${amountToPay.toLocaleString()}</span></td>
                     <td>
                         <div class="action-btns">
-                            <button class="action-btn" onclick="confirmBooking(${b.id})">✅</button>
+                            <button class="action-btn" onclick="openEditBookingModal(${b.id})">✏️ Edit</button>
                             <button class="action-btn del" onclick="deleteBooking(${b.id})">🗑️</button>
                         </div>
                     </td>
                 </tr>
-            `).join('');
+            `}).join('');
             updateBookingStats();
         }
 
@@ -1487,6 +1593,7 @@
             const guests = parseInt(document.getElementById('cb-guests').value) || 0;
             const room = document.getElementById('cb-room').value;
             const deposit = parseFloat(document.getElementById('cb-deposit').value) || 0;
+            const amountToPay = parseFloat(document.getElementById('cb-amount-to-pay').value) || 0;
             const contactEmail = document.getElementById('cb-email').value.trim();
 
             const dateFmt = rawDate
@@ -1499,7 +1606,7 @@
             })() : '—';
 
             const newId = nextBookingId++;
-            bookingsData.unshift({ id: newId, name, type, date: dateFmt, time: timeFmt, guests, room, status: 'pending', deposit });
+            bookingsData.unshift({ id: newId, name, type, date: dateFmt, time: timeFmt, guests, room, status: 'pending', deposit, amountToPay });
             _saveBookings();
 
             document.getElementById('createBookingForm').style.display = 'none';
@@ -1536,12 +1643,37 @@
             }
         }
 
-        function confirmBooking(id) {
+        function openEditBookingModal(id) {
             const b = bookingsData.find(x => x.id === id);
             if (!b) return;
-            b.status = 'confirmed';
+            
+            document.getElementById('eb-status').value = b.status;
+            document.getElementById('eb-deposit').value = b.deposit;
+            document.getElementById('editBookingForm').style.display = 'block';
+            document.getElementById('editBookingSuccess').classList.remove('show');
+            document.getElementById('editBookingModal').dataset.bookingId = id;
+            
+            openModal('editBookingModal');
+        }
+
+        function handleEditBooking(e) {
+            e.preventDefault();
+            const bookingId = parseInt(document.getElementById('editBookingModal').dataset.bookingId);
+            const b = bookingsData.find(x => x.id === bookingId);
+            if (!b) return;
+
+            const status = document.getElementById('eb-status').value;
+            const deposit = parseFloat(document.getElementById('eb-deposit').value) || 0;
+
+            b.status = status;
+            b.deposit = deposit;
+
             _saveBookings();
-            filterBookings();
+
+            document.getElementById('editBookingForm').style.display = 'none';
+            document.getElementById('editBookingSuccessMsg').textContent =
+                `"${b.name}" has been updated successfully.`;
+            document.getElementById('editBookingSuccess').classList.add('show');
         }
 
         function deleteBooking(id) {
@@ -1552,6 +1684,34 @@
                 _saveBookings();
                 filterBookings();
             }
+        }
+
+        function checkTrialAndCreateBooking() {
+            const isTrialActive = TL_isTrialActive();
+            const bookingCount = TL_countUserCreated('bookings', bookingsData);
+
+            if (isTrialActive && bookingCount >= 1) {
+                openPricingModal('bookings');
+                return;
+            }
+
+            openModal('createBookingModal');
+        }
+
+        function openPricingModal(feature) {
+            const modal = document.getElementById('pricingModal');
+            if (!modal) return;
+            
+            const featureName = feature === 'bookings' ? 'Bookings' : 
+                               feature === 'inventory' ? 'Inventory Items' : 'Batches';
+            
+            document.getElementById('pricingFeatureName').textContent = featureName;
+            document.getElementById('pricingFeatureName2').textContent = featureName.toLowerCase();
+            modal.classList.add('open');
+        }
+
+        function closePricingModal() {
+            document.getElementById('pricingModal').classList.remove('open');
         }
 
         function logout() {
@@ -1669,4 +1829,3 @@
 </body>
 
 </html>
-

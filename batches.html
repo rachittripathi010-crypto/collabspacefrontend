@@ -1134,9 +1134,9 @@
                     <option value="fermenting">Fermenting</option>
                     <option value="conditioning">Conditioning</option>
                     <option value="ready">Ready</option>
-                    <option value="low-stock">Low Stock</option>
+                    <option value="ready-for-sale">Ready for Sale</option>
                 </select>
-                <button class="btn-add" onclick="openModal('newBatchModal')">➕ New Batch</button>
+                <button class="btn-add" onclick="checkTrialAndNewBatch()">➕ New Batch</button>
             </div>
 
             <div class="panel">
@@ -1199,19 +1199,19 @@
                                 required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">ABV %</label>
+                            <label class="form-label">ABV % *</label>
                             <input class="form-input" id="nb-abv" type="number" min="0" max="20" step="0.1"
-                                placeholder="e.g. 6.5">
+                                placeholder="e.g. 6.5" required>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label">IBU</label>
-                            <input class="form-input" id="nb-ibu" type="number" min="0" placeholder="e.g. 65">
+                            <label class="form-label">IBU *</label>
+                            <input class="form-input" id="nb-ibu" type="number" min="0" placeholder="e.g. 65" required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Yeast Strain</label>
-                            <input class="form-input" id="nb-yeast" type="text" placeholder="e.g. US-05">
+                            <label class="form-label">Yeast Strain *</label>
+                            <input class="form-input" id="nb-yeast" type="text" placeholder="e.g. US-05" required>
                         </div>
                     </div>
                     <div class="form-row">
@@ -1220,8 +1220,9 @@
                             <input class="form-input" id="nb-start" type="date" required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Est. Completion Date</label>
-                            <input class="form-input" id="nb-end" type="date">
+                            <label class="form-label">Est. Completion Date *</label>
+                            <input class="form-input" id="nb-end" type="date" required>
+                            <div id="nb-date-error" style="font-size:11px;color:#f87171;margin-top:4px;display:none;">Est. Ready date must be after Start date</div>
                         </div>
                     </div>
                     <div class="form-group">
@@ -1241,6 +1242,67 @@
         </div>
     </div>
 
+    <!-- PRICING PLANS MODAL -->
+    <div class="modal-overlay" id="pricingModal">
+        <div class="modal" style="width: 600px; padding: 40px;">
+            <button class="modal-close" onclick="closePricingModal()">×</button>
+            <div style="text-align: center; margin-bottom: 32px;">
+                <div style="font-size: 48px; margin-bottom: 16px;">🚀</div>
+                <h2 style="font-size: 22px; font-weight: 800; color: var(--txt); margin-bottom: 8px;">
+                    Upgrade Your Plan to Add More <span id="pricingFeatureName">Items</span>
+                </h2>
+                <p style="font-size: 14px; color: var(--txt2); line-height: 1.6;">
+                    Your trial period allows 1 <span id="pricingFeatureName2">item</span> each for Bookings, Inventory, and Batches. 
+                    Upgrade to a paid plan to unlock unlimited access.
+                </p>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+                <div style="background: rgba(147,51,234,0.1); border: 1px solid rgba(147,51,234,0.3); border-radius: 12px; padding: 24px; text-align: center;">
+                    <div style="font-size: 24px; font-weight: 800; color: var(--accent); margin-bottom: 8px;">Barrel Plan</div>
+                    <div style="font-size: 12px; color: var(--txt2); margin-bottom: 16px;">Most Popular</div>
+                    <div style="font-size: 36px; font-weight: 800; color: var(--txt); margin-bottom: 4px;">$29</div>
+                    <div style="font-size: 12px; color: var(--txt2); margin-bottom: 20px;">per month</div>
+                    <div style="text-align: left; font-size: 13px; color: var(--txt2); margin-bottom: 20px; line-height: 1.8;">
+                        ✓ Unlimited bookings<br>
+                        ✓ Unlimited inventory items<br>
+                        ✓ Unlimited batch logs<br>
+                        ✓ Advanced analytics<br>
+                        ✓ Email support
+                    </div>
+                    <button style="width: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; border-radius: 8px; padding: 12px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 14px;">
+                        Choose Plan
+                    </button>
+                </div>
+
+                <div style="background: rgba(16,185,129,0.1); border: 2px solid rgba(16,185,129,0.4); border-radius: 12px; padding: 24px; text-align: center; position: relative;">
+                    <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--green); color: #fff; padding: 4px 12px; border-radius: 20px; font-size: 10px; font-weight: 700;">BEST VALUE</div>
+                    <div style="font-size: 24px; font-weight: 800; color: var(--green); margin-bottom: 8px; margin-top: 10px;">Brewmaster Plan</div>
+                    <div style="font-size: 12px; color: var(--txt2); margin-bottom: 16px;">Full Features</div>
+                    <div style="font-size: 36px; font-weight: 800; color: var(--txt); margin-bottom: 4px;">$79</div>
+                    <div style="font-size: 12px; color: var(--txt2); margin-bottom: 20px;">per month</div>
+                    <div style="text-align: left; font-size: 13px; color: var(--txt2); margin-bottom: 20px; line-height: 1.8;">
+                        ✓ Everything in Barrel Plan<br>
+                        ✓ Team access (5 users)<br>
+                        ✓ Advanced reporting<br>
+                        ✓ API access<br>
+                        ✓ Priority support
+                    </div>
+                    <button style="width: 100%; background: linear-gradient(135deg, var(--green), #059669); color: #fff; border: none; border-radius: 8px; padding: 12px; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 14px;">
+                        Choose Plan
+                    </button>
+                </div>
+            </div>
+
+            <div style="text-align: center; padding: 16px; background: rgba(255,255,255,0.03); border-radius: 8px; margin-bottom: 20px;">
+                <p style="font-size: 12px; color: var(--txt3); margin-bottom: 8px;">💳 All plans include 7-day free trial</p>
+                <p style="font-size: 12px; color: var(--txt3);">Cancel anytime. No hidden fees.</p>
+            </div>
+
+            <button class="btn-done" onclick="closePricingModal()" style="width: 100%; background: rgba(255,255,255,0.06);">Maybe Later</button>
+        </div>
+    </div>
+
     <!-- VIEW BATCH MODAL -->
     <div class="modal-overlay" id="viewBatchModal">
         <div class="modal">
@@ -1250,6 +1312,91 @@
             <div class="detail-grid" id="viewBatchGrid"></div>
             <div style="margin-top:24px;text-align:right;">
                 <button class="btn-done" onclick="closeModal('viewBatchModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT BATCH MODAL -->
+    <div class="modal-overlay" id="editBatchModal">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal('editBatchModal')">×</button>
+            <div id="editBatchForm">
+                <div class="modal-title">✏️ Edit Batch</div>
+                <div class="modal-sub">Update your brew batch production details.</div>
+                <form onsubmit="handleEditBatch(event)">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Batch Name *</label>
+                            <input class="form-input" id="eb-name" type="text" placeholder="e.g. West Coast IPA"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Beer Style *</label>
+                            <select class="form-select" id="eb-style" required>
+                                <option value="">Select style</option>
+                                <option>IPA</option>
+                                <option>American Ale</option>
+                                <option>Stout</option>
+                                <option>Porter</option>
+                                <option>Lager</option>
+                                <option>Wheat</option>
+                                <option>Belgian</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Volume (gal) *</label>
+                            <input class="form-input" id="eb-volume" type="number" min="1" placeholder="e.g. 200"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">ABV %</label>
+                            <input class="form-input" id="eb-abv" type="number" min="0" max="20" step="0.1"
+                                placeholder="e.g. 6.5">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">IBU</label>
+                            <input class="form-input" id="eb-ibu" type="number" min="0" placeholder="e.g. 65">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Status *</label>
+                            <select class="form-select" id="eb-status" required>
+                                <option value="">Select status</option>
+                                <option value="fermenting">Fermenting</option>
+                                <option value="conditioning">Conditioning</option>
+                                <option value="ready">Ready</option>
+                                <option value="ready-for-sale">Ready for Sale</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Start Date *</label>
+                            <input class="form-input" id="eb-start" type="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Est. Completion Date *</label>
+                            <input class="form-input" id="eb-end" type="date" required>
+                            <div id="eb-date-error" style="font-size:11px;color:#f87171;margin-top:4px;display:none;">Est. Ready date must be after Start date</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Notes</label>
+                        <textarea class="form-textarea" id="eb-notes"
+                            placeholder="Brew notes, recipe details, special ingredients..."></textarea>
+                    </div>
+                    <button type="submit" class="btn-submit">💾 Save Changes</button>
+                </form>
+            </div>
+            <div class="modal-success" id="editBatchSuccess">
+                <div class="success-icon">✅</div>
+                <div class="success-title">Batch Updated!</div>
+                <div class="success-msg" id="editBatchSuccessMsg">Your batch has been updated successfully.</div>
+                <button class="btn-done" onclick="closeModal('editBatchModal'); renderBatchTable();">Done</button>
             </div>
         </div>
     </div>
@@ -1272,7 +1419,7 @@
             fermenting: '<span class="badge badge-blue">Fermenting</span>',
             conditioning: '<span class="badge badge-orange">Conditioning</span>',
             ready: '<span class="badge badge-green">Ready</span>',
-            'low-stock': '<span class="badge badge-red">Low Stock</span>'
+            'ready-for-sale': '<span class="badge badge-green">Ready for Sale</span>'
         };
 
         function updateBatchStats() {
@@ -1307,6 +1454,7 @@
                     <td>
                         <div class="action-btns">
                             <button class="action-btn" onclick="openViewModal(${b.id})">👁 View</button>
+                            <button class="action-btn" onclick="openEditModal(${b.id})">✏️ Update</button>
                             <button class="action-btn del" onclick="deleteBatch(${b.id})">🗑️</button>
                         </div>
                     </td>
@@ -1327,7 +1475,17 @@
         }
 
         function openModal(id) {
-            document.getElementById(id).classList.add('open');
+            const modal = document.getElementById(id);
+            modal.classList.add('open');
+            
+            // Reset new batch form when opening
+            if (id === 'newBatchModal') {
+                document.getElementById('newBatchForm').style.display = 'block';
+                document.getElementById('newBatchSuccess').classList.remove('show');
+                document.getElementById('nb-date-error').style.display = 'none';
+                const form = document.querySelector('#newBatchModal form');
+                if (form) form.reset();
+            }
         }
 
         function closeModal(id) {
@@ -1345,6 +1503,17 @@
             const start = document.getElementById('nb-start').value;
             const end = document.getElementById('nb-end').value;
             const notes = document.getElementById('nb-notes').value;
+
+            // Date validation: if both dates provided, Est. Ready must be greater than Start date
+            if (start && end) {
+                const startDate = new Date(start);
+                const endDate = new Date(end);
+                if (endDate <= startDate) {
+                    document.getElementById('nb-date-error').style.display = 'block';
+                    return;
+                }
+            }
+            document.getElementById('nb-date-error').style.display = 'none';
 
             const startFmt = start ? new Date(start).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
             const endFmt = end ? new Date(end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD';
@@ -1391,9 +1560,187 @@
             }
         }
 
+        function openEditModal(id) {
+            const b = batchesData.find(x => x.id === id);
+            if (!b) return;
+            
+            // Convert formatted dates back to input format (Feb 18, 2026 -> yyyy-mm-dd)
+            const parseDate = (dateStr) => {
+                if (!dateStr || dateStr === '—' || dateStr === 'TBD') return '';
+                const monthMap = { 'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06',
+                                   'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12' };
+                const parts = dateStr.split(/[\s,]+/).filter(p => p);  // Split by space or comma
+                if (parts.length < 3) return '';
+                const monthStr = parts[0];
+                const day = parts[1];
+                const year = parts[2];
+                
+                const month = monthMap[monthStr] || '01';
+                return `${year}-${month}-${String(day).padStart(2, '0')}`;
+            };
+            
+            document.getElementById('eb-name').value = b.name;
+            document.getElementById('eb-style').value = b.style;
+            document.getElementById('eb-volume').value = b.volume;
+            document.getElementById('eb-abv').value = b.abv;
+            document.getElementById('eb-ibu').value = b.ibu;
+            document.getElementById('eb-status').value = b.status;
+            document.getElementById('eb-start').value = parseDate(b.started);
+            document.getElementById('eb-end').value = parseDate(b.estReady);
+            document.getElementById('eb-notes').value = b.notes || '';
+            document.getElementById('eb-date-error').style.display = 'none';
+            document.getElementById('editBatchForm').style.display = 'block';
+            document.getElementById('editBatchSuccess').classList.remove('show');
+            
+            // Store the batch id for use in handleEditBatch
+            document.getElementById('editBatchModal').dataset.batchId = id;
+            
+            openModal('editBatchModal');
+        }
+
+        function handleEditBatch(e) {
+            e.preventDefault();
+            const batchId = parseInt(document.getElementById('editBatchModal').dataset.batchId);
+            const b = batchesData.find(x => x.id === batchId);
+            if (!b) return;
+
+            const name = document.getElementById('eb-name').value;
+            const style = document.getElementById('eb-style').value;
+            const volume = parseInt(document.getElementById('eb-volume').value);
+            const abv = parseFloat(document.getElementById('eb-abv').value) || 0;
+            const ibu = parseInt(document.getElementById('eb-ibu').value) || 0;
+            const status = document.getElementById('eb-status').value;
+            const start = document.getElementById('eb-start').value;
+            const end = document.getElementById('eb-end').value;
+            const notes = document.getElementById('eb-notes').value;
+
+            // Date validation: Est. Ready must be greater than Start date
+            if (start && end) {
+                const startDate = new Date(start);
+                const endDate = new Date(end);
+                if (endDate <= startDate) {
+                    document.getElementById('eb-date-error').style.display = 'block';
+                    return;
+                }
+            }
+            document.getElementById('eb-date-error').style.display = 'none';
+
+            const startFmt = start ? new Date(start).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+            const endFmt = end ? new Date(end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'TBD';
+
+            // Update the batch
+            b.name = name;
+            b.style = style;
+            b.volume = volume;
+            b.abv = abv;
+            b.ibu = ibu;
+            b.status = status;
+            b.started = startFmt;
+            b.estReady = endFmt;
+            b.notes = notes;
+
+            _saveBatches();
+
+            document.getElementById('editBatchForm').style.display = 'none';
+            document.getElementById('editBatchSuccessMsg').textContent =
+                `Batch #${b.id} — "${b.name}" has been updated successfully.`;
+            document.getElementById('editBatchSuccess').classList.add('show');
+        }
+
+        function checkTrialAndNewBatch() {
+            const isTrialActive = TL_isTrialActive();
+            const batchCount = TL_countUserCreated('batches', batchesData);
+
+            if (isTrialActive && batchCount >= 1) {
+                openPricingModal('batches');
+                return;
+            }
+
+            openModal('newBatchModal');
+        }
+
+        function openPricingModal(feature) {
+            const modal = document.getElementById('pricingModal');
+            if (!modal) return;
+            
+            const featureName = feature === 'bookings' ? 'Bookings' : 
+                               feature === 'inventory' ? 'Inventory Items' : 'Batches';
+            
+            document.getElementById('pricingFeatureName').textContent = featureName;
+            document.getElementById('pricingFeatureName2').textContent = featureName.toLowerCase();
+            modal.classList.add('open');
+        }
+
+        function closePricingModal() {
+            document.getElementById('pricingModal').classList.remove('open');
+        }
+
         function logout() {
             if (confirm('Are you sure you want to log out?')) window.location.href = 'index.html';
         }
+
+        // Add validation for date fields in edit modal and new batch modal
+        document.addEventListener('DOMContentLoaded', () => {
+            // Edit batch date validation
+            if (document.getElementById('eb-start')) {
+                document.getElementById('eb-start').addEventListener('change', () => {
+                    const startEl = document.getElementById('eb-start');
+                    const endEl = document.getElementById('eb-end');
+                    if (startEl.value && endEl.value) {
+                        const startDate = new Date(startEl.value);
+                        const endDate = new Date(endEl.value);
+                        if (endDate <= startDate) {
+                            document.getElementById('eb-date-error').style.display = 'block';
+                        } else {
+                            document.getElementById('eb-date-error').style.display = 'none';
+                        }
+                    }
+                });
+                document.getElementById('eb-end').addEventListener('change', () => {
+                    const startEl = document.getElementById('eb-start');
+                    const endEl = document.getElementById('eb-end');
+                    if (startEl.value && endEl.value) {
+                        const startDate = new Date(startEl.value);
+                        const endDate = new Date(endEl.value);
+                        if (endDate <= startDate) {
+                            document.getElementById('eb-date-error').style.display = 'block';
+                        } else {
+                            document.getElementById('eb-date-error').style.display = 'none';
+                        }
+                    }
+                });
+            }
+
+            // New batch date validation
+            if (document.getElementById('nb-start')) {
+                document.getElementById('nb-start').addEventListener('change', () => {
+                    const startEl = document.getElementById('nb-start');
+                    const endEl = document.getElementById('nb-end');
+                    if (startEl.value && endEl.value) {
+                        const startDate = new Date(startEl.value);
+                        const endDate = new Date(endEl.value);
+                        if (endDate <= startDate) {
+                            document.getElementById('nb-date-error').style.display = 'block';
+                        } else {
+                            document.getElementById('nb-date-error').style.display = 'none';
+                        }
+                    }
+                });
+                document.getElementById('nb-end').addEventListener('change', () => {
+                    const startEl = document.getElementById('nb-start');
+                    const endEl = document.getElementById('nb-end');
+                    if (startEl.value && endEl.value) {
+                        const startDate = new Date(startEl.value);
+                        const endDate = new Date(endEl.value);
+                        if (endDate <= startDate) {
+                            document.getElementById('nb-date-error').style.display = 'block';
+                        } else {
+                            document.getElementById('nb-date-error').style.display = 'none';
+                        }
+                    }
+                });
+            }
+        });
         function toggleDropdown(id, wrapId) {
             const drop = document.getElementById(id);
             const wrap = document.getElementById(wrapId);
@@ -1504,4 +1851,3 @@
 </body>
 
 </html>
-

@@ -29,7 +29,7 @@ const TL_DEFAULT_BATCHES = [
     { id: 47, _demo: true, name: 'Amber Ale', style: 'American Ale', volume: 180, started: 'Feb 10, 2026', estReady: 'Feb 28, 2026', status: 'conditioning', abv: 5.2, ibu: 32, yeast: 'US-05', notes: 'Traditional amber with Crystal 60L.' },
     { id: 46, _demo: true, name: 'Stout Porter', style: 'Porter', volume: 240, started: 'Feb 2, 2026', estReady: 'Feb 20, 2026', status: 'ready', abv: 6.1, ibu: 45, yeast: 'WLP004', notes: 'Rich chocolate and coffee notes.' },
     { id: 45, _demo: true, name: 'Wheat Lager', style: 'Lager', volume: 200, started: 'Jan 28, 2026', estReady: 'Feb 15, 2026', status: 'ready', abv: 4.5, ibu: 18, yeast: 'W-34/70', notes: 'Light and refreshing summer lager.' },
-    { id: 44, _demo: true, name: 'Pale Ale', style: 'American Ale', volume: 160, started: 'Jan 20, 2026', estReady: 'Feb 8, 2026', status: 'low-stock', abv: 5.6, ibu: 38, yeast: 'US-05', notes: 'Classic American Pale Ale, Cascade hops.' },
+    { id: 44, _demo: true, name: 'Pale Ale', style: 'American Ale', volume: 160, started: 'Jan 20, 2026', estReady: 'Feb 8, 2026', status: 'ready-for-sale', abv: 5.6, ibu: 38, yeast: 'US-05', notes: 'Classic American Pale Ale, Cascade hops.' },
     { id: 43, _demo: true, name: 'Belgian Wit', style: 'Wheat', volume: 280, started: 'Jan 12, 2026', estReady: 'Feb 1, 2026', status: 'ready', abv: 4.9, ibu: 15, yeast: 'WLP400', notes: 'Orange peel and coriander spiced.' },
     { id: 42, _demo: true, name: 'Double IPA', style: 'IPA', volume: 120, started: 'Jan 5, 2026', estReady: 'Jan 28, 2026', status: 'ready', abv: 8.4, ibu: 95, yeast: 'WLP001', notes: 'High gravity DIPA with Simcoe & Centennial.' },
 ];
@@ -71,6 +71,18 @@ function TL_getTrialStart(email) {
     return null;
 }
 
+function TL_ensureTrialStart(email) {
+    const userEmail = email || TL_getCurrentUser();
+    if (!userEmail) return null;
+    const userKey = 'tl_trial_start_' + userEmail;
+    let start = localStorage.getItem(userKey);
+    if (!start) {
+        start = Date.now().toString();
+        localStorage.setItem(userKey, start);
+    }
+    return start;
+}
+
 function TL_getDataKey() {
     const u = TL_getCurrentUser();
     return u ? 'tl_data_' + u : null;
@@ -95,9 +107,17 @@ function TL_isTrialActive() {
     return (Date.now() - parseInt(start, 10)) < TWO_DAYS_MS;
 }
 
+/* Count only user-created rows (non-demo) for a module */
+function TL_countUserCreated(moduleKey, list) {
+    const data = TL_getData();
+    const source = Array.isArray(list) ? list : ((data && data[moduleKey]) || []);
+    return source.filter(item => !item._demo).length;
+}
+
 function TL_getData() {
     const key = TL_getDataKey();
     if (!key) return _TL_defaults();
+    TL_ensureTrialStart();
     const raw = localStorage.getItem(key);
     let data;
     if (!raw) {
