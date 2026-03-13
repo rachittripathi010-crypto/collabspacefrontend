@@ -200,7 +200,7 @@ function validateEmail() {
   const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
   setFieldState(input, msg, valid,
     'Valid email address.',
-    'Please enter a valid email (e.g. you@brewery.com).'
+    'Please enter a valid email (e.g. ravi@tamperline.us).'
   );
   return valid || val === '';
 }
@@ -412,7 +412,7 @@ document.addEventListener("keydown", e => {
      1. emailjs.com → Email Templates → Create New Template
      2. Set "To Email" field to: {{to_email}}
         Set "From Name" to:     Tamperline.us
-        Set Reply-To to:        tamperline1@gmail.com
+        Set Reply-To to:        ravi@tamperline.us
         Subject: Your Tamperline.us Password Reset Code
         Body:
           Hi,
